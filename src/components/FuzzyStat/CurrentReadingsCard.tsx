@@ -70,7 +70,7 @@ export function CurrentReadingsCard({
                 placeholder="e.g., London, New York"
                 value={locationQuery}
                 onChange={(e) => onLocationQueryChange(e.target.value)}
-                disabled={isFetchingWeatherData}
+                // removed disabled={isFetchingWeatherData} to allow typing during fetch
                 className="flex-grow"
               />
             </div>
