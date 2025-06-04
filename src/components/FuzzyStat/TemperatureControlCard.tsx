@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +11,6 @@ interface TemperatureControlCardProps {
   minTemp?: number;
   maxTemp?: number;
   step?: number;
-  disabled?: boolean;
 }
 
 export function TemperatureControlCard({
@@ -19,7 +19,6 @@ export function TemperatureControlCard({
   minTemp = 10,
   maxTemp = 30,
   step = 0.5,
-  disabled = false,
 }: TemperatureControlCardProps) {
   return (
     <Card>
@@ -36,7 +35,6 @@ export function TemperatureControlCard({
           min={minTemp}
           max={maxTemp}
           step={step}
-          disabled={disabled}
           aria-label="Desired temperature slider"
         />
         <div className="flex justify-between text-sm text-muted-foreground">

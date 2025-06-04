@@ -1,5 +1,6 @@
+
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/fuzzy-output-explanation.ts';
-import '@/ai/flows/fuzzy-logic-thermostat.ts';
+// Removed imports for fuzzy-output-explanation.ts and fuzzy-logic-thermostat.ts
+// as they are no longer used with the hardcoded logic.

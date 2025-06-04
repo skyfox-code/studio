@@ -1,26 +1,23 @@
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Sun, Snowflake, Zap } from "lucide-react";
+import { Sun, Snowflake } from "lucide-react";
 
 interface OutputVisualizationCardProps {
   heatingOutput: number; // 0-100
   coolingOutput: number; // 0-100
-  explanation: string | null;
-  isLoading: boolean;
+  reasoning: string | null;
 }
 
 export function OutputVisualizationCard({
   heatingOutput,
   coolingOutput,
-  explanation,
-  isLoading,
+  reasoning,
 }: OutputVisualizationCardProps) {
-  const isActive = heatingOutput > 0 || coolingOutput > 0;
-  const statusText = isLoading
-    ? "Calculating..."
-    : heatingOutput > 0
+  const statusText =
+    heatingOutput > 0
     ? `Heating: ${heatingOutput.toFixed(0)}%`
     : coolingOutput > 0
     ? `Cooling: ${coolingOutput.toFixed(0)}%`
@@ -30,14 +27,8 @@ export function OutputVisualizationCard({
     <Card>
       <CardHeader>
         <CardTitle className="font-headline">System Output</CardTitle>
-        {explanation && !isLoading && (
-           <CardDescription className="pt-2 text-sm">{explanation}</CardDescription>
-        )}
-         {isLoading && (
-           <CardDescription className="pt-2 text-sm flex items-center">
-            <Zap className="h-4 w-4 mr-2 animate-pulse text-primary" />
-            AI is thinking...
-            </CardDescription>
+        {reasoning && (
+           <CardDescription className="pt-2 text-sm">{reasoning}</CardDescription>
         )}
       </CardHeader>
       <CardContent className="space-y-6">
@@ -48,10 +39,10 @@ export function OutputVisualizationCard({
               <span className="text-lg">Heating</span>
             </div>
             <span className={`text-xl font-semibold ${heatingOutput > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
-              {isLoading ? '...' : `${heatingOutput.toFixed(0)}%`}
+              {`${heatingOutput.toFixed(0)}%`}
             </span>
           </div>
-          <Progress value={isLoading ? 0 : heatingOutput} aria-label="Heating output" className="h-3 [&>div]:bg-destructive" />
+          <Progress value={heatingOutput} aria-label="Heating output" className="h-3 [&>div]:bg-destructive" />
         </div>
 
         <div>
@@ -61,10 +52,10 @@ export function OutputVisualizationCard({
               <span className="text-lg">Cooling</span>
             </div>
             <span className={`text-xl font-semibold ${coolingOutput > 0 ? 'text-primary' : 'text-muted-foreground'}`}>
-              {isLoading ? '...' : `${coolingOutput.toFixed(0)}%`}
+              {`${coolingOutput.toFixed(0)}%`}
             </span>
           </div>
-          <Progress value={isLoading ? 0 : coolingOutput} aria-label="Cooling output" className="h-3 [&>div]:bg-primary" />
+          <Progress value={coolingOutput} aria-label="Cooling output" className="h-3 [&>div]:bg-primary" />
         </div>
         
         <div className="text-center text-muted-foreground pt-2">

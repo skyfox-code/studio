@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -7,8 +8,6 @@ import { TemperatureControlCard } from '@/components/FuzzyStat/TemperatureContro
 import { OutputVisualizationCard } from '@/components/FuzzyStat/OutputVisualizationCard';
 import { ScheduleCard } from '@/components/FuzzyStat/ScheduleCard/ScheduleCard';
 import type { ScheduleEntry } from '@/components/FuzzyStat/ScheduleCard/types';
-import { regulateTemperature } from '@/ai/flows/fuzzy-logic-thermostat';
-import { fuzzyOutputExplanation } from '@/ai/flows/fuzzy-output-explanation';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
@@ -20,57 +19,61 @@ export default function FuzzyStatPage() {
   
   const [heatingOutput, setHeatingOutput] = useState(0);
   const [coolingOutput, setCoolingOutput] = useState(0);
-  const [fuzzyExplanation, setFuzzyExplanation] = useState<string | null>(null);
+  const [systemReasoning, setSystemReasoning] = useState<string | null>(null);
   
   const [schedule, setSchedule] = useState<ScheduleEntry[]>([]);
-  const [isLoadingAi, setIsLoadingAi] = useState(false);
 
   const { toast } = useToast();
-  const desiredTemperatureRef = useRef(desiredTemperature); // For interval closure
+  const desiredTemperatureRef = useRef(desiredTemperature); 
 
   useEffect(() => {
     desiredTemperatureRef.current = desiredTemperature;
   }, [desiredTemperature]);
 
-  const fetchFuzzyLogicOutput = useCallback(async (temp: number, humidity: number, targetTemp: number) => {
-    setIsLoadingAi(true);
-    setFuzzyExplanation(null); // Clear previous explanation
-    try {
-      const regulation = await regulateTemperature({
-        currentTemperature: temp,
-        currentHumidity: humidity,
-        targetTemperature: targetTemp,
-      });
-      setHeatingOutput(regulation.heatingOutput);
-      setCoolingOutput(regulation.coolingOutput);
+  const calculateSystemOutput = useCallback((temp: number, humidity: number, targetTemp: number) => {
+    let perceivedTemp = temp;
+    let humidityEffectReasoning = "";
 
-      const explanationResult = await fuzzyOutputExplanation({
-        currentTemperature: temp,
-        currentHumidity: humidity,
-        desiredTemperature: targetTemp,
-        heatingOutput: regulation.heatingOutput,
-        coolingOutput: regulation.coolingOutput,
-      });
-      setFuzzyExplanation(explanationResult.explanation);
-
-    } catch (error) {
-      console.error("Error with Fuzzy Logic AI:", error);
-      toast({
-        title: "AI Error",
-        description: "Could not get fuzzy logic output. Please try again.",
-        variant: "destructive",
-      });
-      setHeatingOutput(0); // Reset on error
-      setCoolingOutput(0);
-      setFuzzyExplanation("Failed to load explanation.");
-    } finally {
-      setIsLoadingAi(false);
+    if (humidity > 60) {
+      const adjustment = (humidity - 60) * 0.05; // Each 1% over 60% feels 0.05C warmer
+      perceivedTemp -= adjustment;
+      humidityEffectReasoning = ` (feels like ${perceivedTemp.toFixed(1)}°C due to high humidity of ${humidity}%)`;
+    } else if (humidity < 40) {
+      const adjustment = (40 - humidity) * 0.05; // Each 1% under 40% feels 0.05C cooler
+      perceivedTemp += adjustment;
+      humidityEffectReasoning = ` (feels like ${perceivedTemp.toFixed(1)}°C due to low humidity of ${humidity}%)`;
     }
-  }, [toast]);
+
+    const tempDiff = targetTemp - perceivedTemp; // Positive if too cold, negative if too hot
+    let newHeatingOutput = 0;
+    let newCoolingOutput = 0;
+    let newReasoning = "";
+
+    // Define a deadband of +/- 0.5C around the target
+    const deadband = 0.5;
+
+    if (tempDiff > deadband) { // Need to heat
+      newHeatingOutput = Math.min(100, Math.max(0, (tempDiff - deadband) * 25)); // Proportional heating, 4C effective diff for 100%
+      newCoolingOutput = 0;
+      newReasoning = `Heating: Current temperature ${temp.toFixed(1)}°C${humidityEffectReasoning} is below the target of ${targetTemp.toFixed(1)}°C.`;
+    } else if (tempDiff < -deadband) { // Need to cool
+      newHeatingOutput = 0;
+      newCoolingOutput = Math.min(100, Math.max(0, (Math.abs(tempDiff) - deadband) * 25)); // Proportional cooling
+      newReasoning = `Cooling: Current temperature ${temp.toFixed(1)}°C${humidityEffectReasoning} is above the target of ${targetTemp.toFixed(1)}°C.`;
+    } else { // Within deadband, idle
+      newHeatingOutput = 0;
+      newCoolingOutput = 0;
+      newReasoning = `Idle: Current temperature ${temp.toFixed(1)}°C${humidityEffectReasoning} is close to the target of ${targetTemp.toFixed(1)}°C.`;
+    }
+
+    setHeatingOutput(newHeatingOutput);
+    setCoolingOutput(newCoolingOutput);
+    setSystemReasoning(newReasoning);
+  }, []); // Removed dependencies on setHeatingOutput, setCoolingOutput, setSystemReasoning as they are stable
 
   useEffect(() => {
-    fetchFuzzyLogicOutput(currentTemperature, currentHumidity, desiredTemperature);
-  }, [currentTemperature, currentHumidity, desiredTemperature, fetchFuzzyLogicOutput]);
+    calculateSystemOutput(currentTemperature, currentHumidity, desiredTemperature);
+  }, [currentTemperature, currentHumidity, desiredTemperature, calculateSystemOutput]);
 
   // Schedule application logic
   useEffect(() => {
@@ -91,10 +94,7 @@ export default function FuzzyStatPage() {
         }
       }
       
-      // If no entry matched for today, check if there's a "latest" entry from "yesterday" (last entry of the day)
       if (!activeEntry && sortedSchedule.length > 0) {
-          // This logic could be refined for schedules spanning midnight.
-          // For simplicity, if current time is before the first schedule, use the last schedule of the day.
           const firstScheduleTime = sortedSchedule[0].time;
           if (currentTimeString < firstScheduleTime) {
               activeEntry = sortedSchedule[sortedSchedule.length -1];
@@ -110,8 +110,8 @@ export default function FuzzyStatPage() {
       }
     };
 
-    applySchedule(); // Initial check
-    const intervalId = setInterval(applySchedule, 60000); // Check every minute
+    applySchedule(); 
+    const intervalId = setInterval(applySchedule, 60000); 
 
     return () => clearInterval(intervalId);
   }, [schedule, toast]);
@@ -136,12 +136,11 @@ export default function FuzzyStatPage() {
     }
   };
 
-  // Simulate sensor changes for demo
   const resetDemoValues = () => {
     setCurrentTemperature(22);
     setCurrentHumidity(45);
     setDesiredTemperature(20);
-    setSchedule([]); // Clears schedule too, or keep it? Let's clear for full reset.
+    setSchedule([]); 
     toast({ title: "Demo Reset", description: "All values reset to defaults." });
   };
 
@@ -162,13 +161,11 @@ export default function FuzzyStatPage() {
           <TemperatureControlCard
             desiredTemperature={desiredTemperature}
             onDesiredTemperatureChange={setDesiredTemperature}
-            disabled={isLoadingAi}
           />
           <OutputVisualizationCard
             heatingOutput={heatingOutput}
             coolingOutput={coolingOutput}
-            explanation={fuzzyExplanation}
-            isLoading={isLoadingAi}
+            reasoning={systemReasoning}
           />
           <ScheduleCard
             schedule={schedule}
@@ -184,7 +181,7 @@ export default function FuzzyStatPage() {
         </div>
       </main>
       <footer className="text-center py-6 text-sm text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} FuzzyStat. Powered by GenAI.</p>
+        <p>&copy; {new Date().getFullYear()} FuzzyStat. Logic by Rules.</p>
       </footer>
     </div>
   );
