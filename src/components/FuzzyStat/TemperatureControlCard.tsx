@@ -11,6 +11,7 @@ interface TemperatureControlCardProps {
   minTemp?: number;
   maxTemp?: number;
   step?: number;
+  isDisabled?: boolean;
 }
 
 export function TemperatureControlCard({
@@ -19,6 +20,7 @@ export function TemperatureControlCard({
   minTemp = 10,
   maxTemp = 30,
   step = 0.5,
+  isDisabled = false,
 }: TemperatureControlCardProps) {
   return (
     <Card>
@@ -36,6 +38,7 @@ export function TemperatureControlCard({
           max={maxTemp}
           step={step}
           aria-label="Desired temperature slider"
+          disabled={isDisabled}
         />
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>{minTemp}°C</span>
@@ -45,3 +48,5 @@ export function TemperatureControlCard({
     </Card>
   );
 }
+
+    

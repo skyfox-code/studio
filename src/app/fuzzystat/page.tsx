@@ -12,7 +12,7 @@ import { FuzzyLogicDisplayCard } from '@/components/FuzzyStat/FuzzyLogicDisplayC
 import { ClockCard } from '@/components/FuzzyStat/ClockCard';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from '@/components/ui/button';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Play, Pause } from 'lucide-react';
 import { fetchCurrentWeather } from '@/services/weatherService';
 import type { WeatherData } from '@/services/weatherService';
 
@@ -37,6 +37,9 @@ export default function FuzzyStatDemoPage() {
   const [fetchedLocationName, setFetchedLocationName] = useState<string | null>(null);
   const [isFetchingWeatherData, setIsFetchingWeatherData] = useState<boolean>(false);
   const [weatherApiError, setWeatherApiError] = useState<string | null>(null);
+
+  const [isSimulating, setIsSimulating] = useState<boolean>(false);
+  const simulationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { toast } = useToast();
   const desiredTemperatureRef = useRef(desiredTemperature); 
@@ -138,7 +141,7 @@ export default function FuzzyStatDemoPage() {
 
   useEffect(() => {
     const applySchedule = () => {
-      if (schedule.length === 0) return;
+      if (schedule.length === 0 || isSimulating) return; // Don't apply schedule during simulation
       
       const now = new Date();
       const currentTimeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -174,7 +177,7 @@ export default function FuzzyStatDemoPage() {
     const intervalId = setInterval(applySchedule, 60000); 
 
     return () => clearInterval(intervalId);
-  }, [schedule, toast]);
+  }, [schedule, toast, isSimulating]);
 
 
   const handleAddSchedule = (data: Omit<ScheduleEntry, "id">) => {
@@ -196,7 +199,59 @@ export default function FuzzyStatDemoPage() {
     }
   };
 
+  const handleToggleSimulation = () => {
+    if (isSimulating) {
+        setIsSimulating(false); // This will trigger the useEffect cleanup for the interval
+    } else {
+        if (dataSource === 'manual') {
+            if (Math.abs(currentTemperature - desiredTemperatureRef.current) < 0.1) {
+                toast({
+                    title: "Already at Target",
+                    description: "Current temperature is already at the desired temperature.",
+                });
+                return;
+            }
+            setIsSimulating(true);
+        }
+    }
+  };
+
+  useEffect(() => {
+    if (isSimulating && dataSource === 'manual') {
+      simulationIntervalRef.current = setInterval(() => {
+        setCurrentTemperature(prevTemp => {
+          const targetTemp = desiredTemperatureRef.current;
+          const diff = targetTemp - prevTemp;
+          const step = 0.1; // Simulation step for temperature change
+
+          if (Math.abs(diff) < step) { // Target reached
+            setIsSimulating(false); 
+            return targetTemp;
+          }
+          return parseFloat((prevTemp + (diff > 0 ? step : -step)).toFixed(1));
+        });
+      }, 500); // Simulation speed (milliseconds)
+    } else {
+      if (simulationIntervalRef.current) {
+        clearInterval(simulationIntervalRef.current);
+        simulationIntervalRef.current = null;
+      }
+    }
+
+    return () => { // Cleanup
+      if (simulationIntervalRef.current) {
+        clearInterval(simulationIntervalRef.current);
+      }
+    };
+  }, [isSimulating, dataSource, setCurrentTemperature]);
+
+
   const resetDemoValues = () => {
+    setIsSimulating(false); // Stop simulation if active
+    if (simulationIntervalRef.current) {
+        clearInterval(simulationIntervalRef.current);
+        simulationIntervalRef.current = null;
+    }
     setCurrentTemperature(22);
     setCurrentHumidity(45);
     setDesiredTemperature(20);
@@ -207,11 +262,12 @@ export default function FuzzyStatDemoPage() {
     setIsFetchingWeatherData(false);
     setWeatherApiError(null);
     toast({ title: "Demo Reset", description: "All values reset to defaults." });
-    if (dataSource === 'open-meteo') { // If it was on live, re-fetch for default Vienna
+    if (dataSource === 'open-meteo') {
         getWeatherData("Vienna");
     }
   };
   
+  // Initial calculation on mount
   useEffect(() => {
     calculateSystemOutput(currentTemperature, currentHumidity, desiredTemperature);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -230,7 +286,10 @@ export default function FuzzyStatDemoPage() {
                   temperature={currentTemperature}
                   humidity={currentHumidity}
                   dataSource={dataSource}
-                  onDataSourceChange={setDataSource}
+                  onDataSourceChange={(newSource) => {
+                    if (isSimulating) setIsSimulating(false); // Stop simulation if changing source
+                    setDataSource(newSource);
+                  }}
                   isFetchingWeatherData={isFetchingWeatherData}
                   weatherApiError={weatherApiError}
                   locationQuery={locationQuery}
@@ -238,11 +297,19 @@ export default function FuzzyStatDemoPage() {
                   fetchedLocationName={fetchedLocationName}
                 />
                 <div className="flex space-x-2 justify-center">
-                    <Button onClick={() => setCurrentTemperature(t => t + 0.5)} size="sm" disabled={dataSource === 'open-meteo' || isFetchingWeatherData}>Temp +</Button>
-                    <Button onClick={() => setCurrentTemperature(t => t - 0.5)} size="sm" disabled={dataSource === 'open-meteo' || isFetchingWeatherData}>Temp -</Button>
-                    <Button onClick={() => setCurrentHumidity(h => Math.min(100, h + 5))} size="sm" disabled={dataSource === 'open-meteo' || isFetchingWeatherData}>Hum +</Button>
-                    <Button onClick={() => setCurrentHumidity(h => Math.max(0, h - 5))} size="sm" disabled={dataSource === 'open-meteo' || isFetchingWeatherData}>Hum -</Button>
+                    <Button onClick={() => setCurrentTemperature(t => t + 0.5)} size="sm" disabled={dataSource === 'open-meteo' || isFetchingWeatherData || isSimulating}>Temp +</Button>
+                    <Button onClick={() => setCurrentTemperature(t => t - 0.5)} size="sm" disabled={dataSource === 'open-meteo' || isFetchingWeatherData || isSimulating}>Temp -</Button>
+                    <Button onClick={() => setCurrentHumidity(h => Math.min(100, h + 5))} size="sm" disabled={dataSource === 'open-meteo' || isFetchingWeatherData || isSimulating}>Hum +</Button>
+                    <Button onClick={() => setCurrentHumidity(h => Math.max(0, h - 5))} size="sm" disabled={dataSource === 'open-meteo' || isFetchingWeatherData || isSimulating}>Hum -</Button>
                 </div>
+                {dataSource === 'manual' && (
+                  <div className="mt-4 flex justify-center">
+                    <Button onClick={handleToggleSimulation} variant="outline" disabled={isFetchingWeatherData || (dataSource === 'open-meteo')}>
+                      {isSimulating ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+                      {isSimulating ? "Stop Simulation" : "Start Temp Simulation"}
+                    </Button>
+                  </div>
+                )}
                  <OutputVisualizationCard
                   heatingOutput={heatingOutput}
                   coolingOutput={coolingOutput}
@@ -253,6 +320,7 @@ export default function FuzzyStatDemoPage() {
                 <TemperatureControlCard
                   desiredTemperature={desiredTemperature}
                   onDesiredTemperatureChange={setDesiredTemperature}
+                  isDisabled={isSimulating || dataSource === 'open-meteo'}
                 />
                 <ScheduleCard
                   schedule={schedule}
@@ -293,3 +361,5 @@ export default function FuzzyStatDemoPage() {
     </div>
   );
 }
+
+    
