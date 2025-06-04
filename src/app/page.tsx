@@ -9,7 +9,7 @@ import { OutputVisualizationCard } from '@/components/FuzzyStat/OutputVisualizat
 import { ScheduleCard } from '@/components/FuzzyStat/ScheduleCard/ScheduleCard';
 import type { ScheduleEntry } from '@/components/FuzzyStat/ScheduleCard/types';
 import { FuzzyLogicDisplayCard } from '@/components/FuzzyStat/FuzzyLogicDisplayCard';
-import { ClockCard } from '@/components/FuzzyStat/ClockCard'; // Added import
+import { ClockCard } from '@/components/FuzzyStat/ClockCard';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
@@ -169,7 +169,6 @@ export default function FuzzyStatPage() {
           <div className="lg:w-2/3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
               <div className="space-y-6"> {/* Column 1 */}
-                <ClockCard />
                 <CurrentReadingsCard temperature={currentTemperature} humidity={currentHumidity} />
                 <div className="flex space-x-2 justify-center">
                     <Button onClick={() => setCurrentTemperature(t => t + 0.5)} size="sm">Temp +</Button>
@@ -194,6 +193,7 @@ export default function FuzzyStatPage() {
                   onUpdateSchedule={handleUpdateSchedule}
                   onDeleteSchedule={handleDeleteSchedule}
                 />
+                <ClockCard />
               </div>
             </div>
           </div>
