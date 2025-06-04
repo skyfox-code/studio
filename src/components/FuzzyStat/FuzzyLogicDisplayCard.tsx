@@ -48,7 +48,7 @@ export function FuzzyLogicDisplayCard({
 
           <Separator className="my-2 bg-border/70 !my-2.5" />
 
-          {humidityEffectReasoningDisplay && !humidityEffectReasoningDisplay.includes("ideal range") && (
+          {humidityEffectReasoningDisplay && (
             <p><span className="text-accent">CALC_STEP # </span> {humidityEffectReasoningDisplay}</p>
           )}
           <p><span className="text-accent">CALC_STEP # </span> Effective Temperature: <span className="font-semibold">{perceivedTemperatureDisplay !== null ? `${perceivedTemperatureDisplay.toFixed(1)}°C` : 'N/A'}</span></p>
