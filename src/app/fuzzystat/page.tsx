@@ -13,6 +13,8 @@ import { ClockCard } from '@/components/FuzzyStat/ClockCard';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
+import { fetchCurrentWeather } from '@/services/weatherService';
+import type { WeatherData } from '@/services/weatherService';
 
 export default function FuzzyStatDemoPage() {
   const [currentTemperature, setCurrentTemperature] = useState(22);
@@ -29,6 +31,10 @@ export default function FuzzyStatDemoPage() {
   const [temperatureDifferenceDisplay, setTemperatureDifferenceDisplay] = useState<number | null>(desiredTemperature - currentTemperature);
   const [humidityEffectReasoningDisplay, setHumidityEffectReasoningDisplay] = useState<string | null>("Humidity is in the ideal range (40-60%). No perceived temperature adjustment.");
   const deadband = 0.5; 
+
+  const [dataSource, setDataSource] = useState<'manual' | 'open-meteo'>('manual');
+  const [isFetchingWeatherData, setIsFetchingWeatherData] = useState<boolean>(false);
+  const [weatherApiError, setWeatherApiError] = useState<string | null>(null);
 
   const { toast } = useToast();
   const desiredTemperatureRef = useRef(desiredTemperature); 
@@ -85,6 +91,36 @@ export default function FuzzyStatDemoPage() {
   useEffect(() => {
     calculateSystemOutput(currentTemperature, currentHumidity, desiredTemperature);
   }, [currentTemperature, currentHumidity, desiredTemperature, calculateSystemOutput]);
+
+  useEffect(() => {
+    if (dataSource === 'open-meteo') {
+      const getWeatherData = async () => {
+        setIsFetchingWeatherData(true);
+        setWeatherApiError(null);
+        try {
+          const data: WeatherData = await fetchCurrentWeather();
+          setCurrentTemperature(data.temperature);
+          setCurrentHumidity(data.humidity);
+          toast({
+            title: "Live Weather Fetched",
+            description: `Temp: ${data.temperature}°C, Humidity: ${data.humidity}% (London, UK)`,
+          });
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "Failed to fetch live weather data.";
+          setWeatherApiError(errorMessage);
+          toast({
+            title: "Error Fetching Weather",
+            description: errorMessage,
+            variant: "destructive",
+          });
+        } finally {
+          setIsFetchingWeatherData(false);
+        }
+      };
+      getWeatherData();
+    }
+  }, [dataSource, toast]);
+
 
   useEffect(() => {
     const applySchedule = () => {
@@ -151,11 +187,15 @@ export default function FuzzyStatDemoPage() {
     setCurrentHumidity(45);
     setDesiredTemperature(20);
     setSchedule([]); 
-    calculateSystemOutput(22, 45, 20);
+    setDataSource('manual');
+    setIsFetchingWeatherData(false);
+    setWeatherApiError(null);
+    // calculateSystemOutput(22, 45, 20); // This is handled by useEffect on state change
     toast({ title: "Demo Reset", description: "All values reset to defaults." });
   };
   
   useEffect(() => {
+    // Initial calculation on mount
     calculateSystemOutput(currentTemperature, currentHumidity, desiredTemperature);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -169,12 +209,19 @@ export default function FuzzyStatDemoPage() {
           <div className="lg:w-2/3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
               <div className="space-y-6"> {/* Column 1 */}
-                <CurrentReadingsCard temperature={currentTemperature} humidity={currentHumidity} />
+                <CurrentReadingsCard
+                  temperature={currentTemperature}
+                  humidity={currentHumidity}
+                  dataSource={dataSource}
+                  onDataSourceChange={setDataSource}
+                  isFetchingWeatherData={isFetchingWeatherData}
+                  weatherApiError={weatherApiError}
+                />
                 <div className="flex space-x-2 justify-center">
-                    <Button onClick={() => setCurrentTemperature(t => t + 0.5)} size="sm">Temp +</Button>
-                    <Button onClick={() => setCurrentTemperature(t => t - 0.5)} size="sm">Temp -</Button>
-                    <Button onClick={() => setCurrentHumidity(h => Math.min(100, h + 5))} size="sm">Hum +</Button>
-                    <Button onClick={() => setCurrentHumidity(h => Math.max(0, h - 5))} size="sm">Hum -</Button>
+                    <Button onClick={() => setCurrentTemperature(t => t + 0.5)} size="sm" disabled={dataSource === 'open-meteo' || isFetchingWeatherData}>Temp +</Button>
+                    <Button onClick={() => setCurrentTemperature(t => t - 0.5)} size="sm" disabled={dataSource === 'open-meteo' || isFetchingWeatherData}>Temp -</Button>
+                    <Button onClick={() => setCurrentHumidity(h => Math.min(100, h + 5))} size="sm" disabled={dataSource === 'open-meteo' || isFetchingWeatherData}>Hum +</Button>
+                    <Button onClick={() => setCurrentHumidity(h => Math.max(0, h - 5))} size="sm" disabled={dataSource === 'open-meteo' || isFetchingWeatherData}>Hum -</Button>
                 </div>
                  <OutputVisualizationCard
                   heatingOutput={heatingOutput}
