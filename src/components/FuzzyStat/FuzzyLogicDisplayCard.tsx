@@ -2,7 +2,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Thermometer, Droplets, Target, Brain, TrendingUp, TrendingDown, Info } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface FuzzyLogicDisplayCardProps {
   currentTemperature: number;
@@ -32,54 +32,41 @@ export function FuzzyLogicDisplayCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline flex items-center">
-          <Brain className="h-6 w-6 mr-2 text-primary" />
-          Logic Details
+        <CardTitle className="font-headline">
+          System Log
         </CardTitle>
         <CardDescription>
-          How the thermostat makes decisions.
+          Live calculations from the thermostat.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm">
-        <div>
-          <h4 className="font-semibold mb-1 text-base">Inputs:</h4>
-          <div className="pl-2 space-y-1 border-l-2 border-muted ml-1">
-            <p className="flex items-center"><Thermometer className="h-4 w-4 mr-2 text-accent" /> Current Temp: {currentTemperature.toFixed(1)}°C</p>
-            <p className="flex items-center"><Droplets className="h-4 w-4 mr-2 text-primary" /> Current Humidity: {currentHumidity.toFixed(0)}%</p>
-            <p className="flex items-center"><Target className="h-4 w-4 mr-2 text-accent" /> Target Temp: {targetTemperature.toFixed(1)}°C</p>
-          </div>
-        </div>
+      <CardContent className="font-mono text-sm">
+        <div className="p-3 bg-muted/50 rounded-md space-y-1.5 overflow-x-auto">
+          <p><span className="text-primary">SYS_INPUT &gt;</span> Current Temperature: <span className="font-semibold">{currentTemperature.toFixed(1)}°C</span></p>
+          <p><span className="text-primary">SYS_INPUT &gt;</span> Current Humidity: <span className="font-semibold">{currentHumidity.toFixed(0)}%</span></p>
+          <p><span className="text-primary">SYS_INPUT &gt;</span> Target Temperature: <span className="font-semibold">{targetTemperature.toFixed(1)}°C</span></p>
+          <p><span className="text-primary">SYS_CONFIG &gt;</span> Deadband: <span className="font-semibold">±{deadband.toFixed(1)}°C</span></p>
 
-        <div>
-          <h4 className="font-semibold mb-1 text-base">Intermediate Calculations:</h4>
-          <div className="pl-2 space-y-1 border-l-2 border-muted ml-1">
-            {humidityEffectReasoningDisplay && (
-              <p><span className="font-medium">Humidity Effect:</span> {humidityEffectReasoningDisplay}</p>
-            )}
-             <p><span className="font-medium">Effective Temperature:</span> {perceivedTemperatureDisplay !== null ? `${perceivedTemperatureDisplay.toFixed(1)}°C` : 'N/A'}</p>
-            <p><span className="font-medium">Temp Difference (Target - Effective):</span> {temperatureDifferenceDisplay !== null ? `${temperatureDifferenceDisplay.toFixed(1)}°C` : 'N/A'}</p>
-            <p><span className="font-medium">Deadband:</span> ±{deadband.toFixed(1)}°C</p>
-          </div>
-        </div>
-        
-        <div>
-          <h4 className="font-semibold mb-1 text-base">Outputs:</h4>
-           <div className="pl-2 space-y-1 border-l-2 border-muted ml-1">
-            <p className="flex items-center"><TrendingUp className="h-4 w-4 mr-2 text-destructive" /> Heating Output: {heatingOutput.toFixed(0)}%</p>
-            <p className="flex items-center"><TrendingDown className="h-4 w-4 mr-2 text-primary" /> Cooling Output: {coolingOutput.toFixed(0)}%</p>
-          </div>
-        </div>
+          <Separator className="my-2 bg-border/70 !my-2.5" />
 
-        {finalReasoning && (
-          <div>
-            <h4 className="font-semibold mb-1 text-base flex items-center">
-              <Info className="h-5 w-5 mr-2 text-foreground" />
-              System Reasoning:
-            </h4>
-            <p className="pl-2 border-l-2 border-muted ml-1 italic text-muted-foreground">{finalReasoning}</p>
-          </div>
-        )}
+          {humidityEffectReasoningDisplay && !humidityEffectReasoningDisplay.includes("ideal range") && (
+            <p><span className="text-accent">CALC_STEP # </span> {humidityEffectReasoningDisplay}</p>
+          )}
+          <p><span className="text-accent">CALC_STEP # </span> Effective Temperature: <span className="font-semibold">{perceivedTemperatureDisplay !== null ? `${perceivedTemperatureDisplay.toFixed(1)}°C` : 'N/A'}</span></p>
+          <p><span className="text-accent">CALC_STEP # </span> Temp Difference (Target - Effective): <span className="font-semibold">{temperatureDifferenceDisplay !== null ? `${temperatureDifferenceDisplay.toFixed(1)}°C` : 'N/A'}</span></p>
+
+          <Separator className="my-2 bg-border/70 !my-2.5" />
+
+          <p><span className="text-foreground">SYS_OUTPUT $ </span> Heating Output: <span className={`font-bold ${heatingOutput > 0 ? 'text-destructive' : 'text-foreground'}`}>{heatingOutput.toFixed(0)}%</span></p>
+          <p><span className="text-foreground">SYS_OUTPUT $ </span> Cooling Output: <span className={`font-bold ${coolingOutput > 0 ? 'text-primary' : 'text-foreground'}`}>{coolingOutput.toFixed(0)}%</span></p>
+
+          <Separator className="my-2 bg-border/70 !my-2.5" />
+          
+          {finalReasoning && (
+            <p className="whitespace-pre-wrap"><span className="text-muted-foreground">REASONING ! </span> {finalReasoning}</p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
 }
+
