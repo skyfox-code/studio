@@ -33,6 +33,8 @@ export default function FuzzyStatDemoPage() {
   const deadband = 0.5; 
 
   const [dataSource, setDataSource] = useState<'manual' | 'open-meteo'>('manual');
+  const [locationQuery, setLocationQuery] = useState<string>("Vienna");
+  const [fetchedLocationName, setFetchedLocationName] = useState<string | null>(null);
   const [isFetchingWeatherData, setIsFetchingWeatherData] = useState<boolean>(false);
   const [weatherApiError, setWeatherApiError] = useState<string | null>(null);
 
@@ -92,34 +94,46 @@ export default function FuzzyStatDemoPage() {
     calculateSystemOutput(currentTemperature, currentHumidity, desiredTemperature);
   }, [currentTemperature, currentHumidity, desiredTemperature, calculateSystemOutput]);
 
+  const getWeatherData = useCallback(async (city: string) => {
+    setIsFetchingWeatherData(true);
+    setWeatherApiError(null);
+    setFetchedLocationName(null);
+    try {
+      const data: WeatherData = await fetchCurrentWeather(city);
+      setCurrentTemperature(data.temperature);
+      setCurrentHumidity(data.humidity);
+      setFetchedLocationName(data.fetchedLocationName);
+      toast({
+        title: "Live Weather Fetched",
+        description: `Temp: ${data.temperature}°C, Hum: ${data.humidity}% (${data.fetchedLocationName})`,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to fetch live weather data.";
+      setWeatherApiError(errorMessage);
+      toast({
+        title: "Error Fetching Weather",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsFetchingWeatherData(false);
+    }
+  }, [toast]);
+  
   useEffect(() => {
     if (dataSource === 'open-meteo') {
-      const getWeatherData = async () => {
-        setIsFetchingWeatherData(true);
-        setWeatherApiError(null);
-        try {
-          const data: WeatherData = await fetchCurrentWeather();
-          setCurrentTemperature(data.temperature);
-          setCurrentHumidity(data.humidity);
-          toast({
-            title: "Live Weather Fetched",
-            description: `Temp: ${data.temperature}°C, Humidity: ${data.humidity}% (Vienna, AT)`,
-          });
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : "Failed to fetch live weather data.";
-          setWeatherApiError(errorMessage);
-          toast({
-            title: "Error Fetching Weather",
-            description: errorMessage,
-            variant: "destructive",
-          });
-        } finally {
-          setIsFetchingWeatherData(false);
-        }
-      };
-      getWeatherData();
+      if (locationQuery.trim() === "") {
+        setWeatherApiError("Please enter a city name.");
+        toast({
+          title: "Input Required",
+          description: "City name cannot be empty to fetch live weather.",
+          variant: "destructive",
+        });
+        return;
+      }
+      getWeatherData(locationQuery);
     }
-  }, [dataSource, toast]);
+  }, [dataSource, locationQuery, getWeatherData, toast]);
 
 
   useEffect(() => {
@@ -188,14 +202,17 @@ export default function FuzzyStatDemoPage() {
     setDesiredTemperature(20);
     setSchedule([]); 
     setDataSource('manual');
+    setLocationQuery("Vienna");
+    setFetchedLocationName(null);
     setIsFetchingWeatherData(false);
     setWeatherApiError(null);
-    // calculateSystemOutput(22, 45, 20); // This is handled by useEffect on state change
     toast({ title: "Demo Reset", description: "All values reset to defaults." });
+    if (dataSource === 'open-meteo') { // If it was on live, re-fetch for default Vienna
+        getWeatherData("Vienna");
+    }
   };
   
   useEffect(() => {
-    // Initial calculation on mount
     calculateSystemOutput(currentTemperature, currentHumidity, desiredTemperature);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -216,6 +233,9 @@ export default function FuzzyStatDemoPage() {
                   onDataSourceChange={setDataSource}
                   isFetchingWeatherData={isFetchingWeatherData}
                   weatherApiError={weatherApiError}
+                  locationQuery={locationQuery}
+                  onLocationQueryChange={setLocationQuery}
+                  fetchedLocationName={fetchedLocationName}
                 />
                 <div className="flex space-x-2 justify-center">
                     <Button onClick={() => setCurrentTemperature(t => t + 0.5)} size="sm" disabled={dataSource === 'open-meteo' || isFetchingWeatherData}>Temp +</Button>
