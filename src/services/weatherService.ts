@@ -4,15 +4,15 @@ export interface WeatherData {
   humidity: number;
 }
 
-// Default to London, UK
-const DEFAULT_LATITUDE = 51.5074;
-const DEFAULT_LONGITUDE = -0.1278;
+// Default to Vienna, Austria
+const DEFAULT_LATITUDE = 48.2082;
+const DEFAULT_LONGITUDE = 16.3738;
 
 export async function fetchCurrentWeather(
   latitude: number = DEFAULT_LATITUDE,
   longitude: number = DEFAULT_LONGITUDE
 ): Promise<WeatherData> {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m&timezone=GMT`;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m&timezone=Europe/Vienna`;
 
   try {
     const response = await fetch(url);

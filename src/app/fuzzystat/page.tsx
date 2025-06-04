@@ -103,7 +103,7 @@ export default function FuzzyStatDemoPage() {
           setCurrentHumidity(data.humidity);
           toast({
             title: "Live Weather Fetched",
-            description: `Temp: ${data.temperature}°C, Humidity: ${data.humidity}% (London, UK)`,
+            description: `Temp: ${data.temperature}°C, Humidity: ${data.humidity}% (Vienna, AT)`,
           });
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : "Failed to fetch live weather data.";

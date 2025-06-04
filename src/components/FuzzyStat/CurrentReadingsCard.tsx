@@ -78,7 +78,7 @@ export function CurrentReadingsCard({
           <span className="text-2xl font-bold">{humidity.toFixed(0)}%</span>
         </div>
          {dataSource === 'open-meteo' && !isFetchingWeatherData && !weatherApiError && (
-          <p className="text-xs text-muted-foreground text-center pt-1">Live data from Open-Meteo (London, UK)</p>
+          <p className="text-xs text-muted-foreground text-center pt-1">Live data from Open-Meteo (Vienna, AT)</p>
         )}
       </CardContent>
     </Card>
