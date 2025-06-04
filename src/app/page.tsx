@@ -1,227 +1,60 @@
 
-"use client";
-
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { FuzzyStatHeader } from '@/components/FuzzyStat/Header';
-import { CurrentReadingsCard } from '@/components/FuzzyStat/CurrentReadingsCard';
-import { TemperatureControlCard } from '@/components/FuzzyStat/TemperatureControlCard';
-import { OutputVisualizationCard } from '@/components/FuzzyStat/OutputVisualizationCard';
-import { ScheduleCard } from '@/components/FuzzyStat/ScheduleCard/ScheduleCard';
-import type { ScheduleEntry } from '@/components/FuzzyStat/ScheduleCard/types';
-import { FuzzyLogicDisplayCard } from '@/components/FuzzyStat/FuzzyLogicDisplayCard';
-import { ClockCard } from '@/components/FuzzyStat/ClockCard';
-import { useToast } from "@/hooks/use-toast";
+import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { RotateCcw } from 'lucide-react';
+import { ArrowRight, Gauge } from 'lucide-react';
 
-export default function FuzzyStatPage() {
-  const [currentTemperature, setCurrentTemperature] = useState(22);
-  const [currentHumidity, setCurrentHumidity] = useState(45);
-  const [desiredTemperature, setDesiredTemperature] = useState(20);
-  
-  const [heatingOutput, setHeatingOutput] = useState(0);
-  const [coolingOutput, setCoolingOutput] = useState(0);
-  const [systemReasoning, setSystemReasoning] = useState<string | null>(null);
-  
-  const [schedule, setSchedule] = useState<ScheduleEntry[]>([]);
-
-  const [perceivedTemperatureDisplay, setPerceivedTemperatureDisplay] = useState<number | null>(currentTemperature);
-  const [temperatureDifferenceDisplay, setTemperatureDifferenceDisplay] = useState<number | null>(desiredTemperature - currentTemperature);
-  const [humidityEffectReasoningDisplay, setHumidityEffectReasoningDisplay] = useState<string | null>("Humidity is in the ideal range (40-60%). No perceived temperature adjustment.");
-  const deadband = 0.5; 
-
-  const { toast } = useToast();
-  const desiredTemperatureRef = useRef(desiredTemperature); 
-
-  useEffect(() => {
-    desiredTemperatureRef.current = desiredTemperature;
-  }, [desiredTemperature]);
-
-  const calculateSystemOutput = useCallback((temp: number, humidity: number, targetTemp: number) => {
-    let perceivedTemp = temp;
-    let humidityEffectReasoning = "";
-
-    if (humidity > 60) {
-      const adjustment = (humidity - 60) * 0.05; 
-      perceivedTemp -= adjustment; 
-      humidityEffectReasoning = `Feels ${adjustment.toFixed(1)}°C warmer due to high humidity (${humidity}%)`;
-    } else if (humidity < 40) {
-      const adjustment = (40 - humidity) * 0.05;
-      perceivedTemp += adjustment; 
-      humidityEffectReasoning = `Feels ${adjustment.toFixed(1)}°C cooler due to low humidity (${humidity}%)`;
-    } else {
-       humidityEffectReasoning = "Humidity is in the ideal range (40-60%). No perceived temperature adjustment.";
-    }
-
-    const tempDiff = targetTemp - perceivedTemp; 
-    let newHeatingOutput = 0;
-    let newCoolingOutput = 0;
-    let newReasoning = "";
-
-    if (tempDiff > deadband) { 
-      newHeatingOutput = Math.min(100, Math.max(0, (tempDiff - deadband) * 25)); 
-      newCoolingOutput = 0;
-      newReasoning = `Heating: Effective temperature ${perceivedTemp.toFixed(1)}°C is below the target of ${targetTemp.toFixed(1)}°C by more than the ${deadband}°C deadband.`;
-    } else if (tempDiff < -deadband) { 
-      newHeatingOutput = 0;
-      newCoolingOutput = Math.min(100, Math.max(0, (Math.abs(tempDiff) - deadband) * 25)); 
-      newReasoning = `Cooling: Effective temperature ${perceivedTemp.toFixed(1)}°C is above the target of ${targetTemp.toFixed(1)}°C by more than the ${deadband}°C deadband.`;
-    } else { 
-      newHeatingOutput = 0;
-      newCoolingOutput = 0;
-      newReasoning = `Idle: Effective temperature ${perceivedTemp.toFixed(1)}°C is within ±${deadband}°C of the target ${targetTemp.toFixed(1)}°C.`;
-    }
-
-    setHeatingOutput(newHeatingOutput);
-    setCoolingOutput(newCoolingOutput);
-    setSystemReasoning(newReasoning);
-
-    setPerceivedTemperatureDisplay(perceivedTemp);
-    setTemperatureDifferenceDisplay(tempDiff);
-    setHumidityEffectReasoningDisplay(humidityEffectReasoning.trim() ? humidityEffectReasoning : "Humidity is in the ideal range (40-60%). No perceived temperature adjustment.");
-
-  }, []); 
-
-  useEffect(() => {
-    calculateSystemOutput(currentTemperature, currentHumidity, desiredTemperature);
-  }, [currentTemperature, currentHumidity, desiredTemperature, calculateSystemOutput]);
-
-  useEffect(() => {
-    const applySchedule = () => {
-      if (schedule.length === 0) return;
-      
-      const now = new Date();
-      const currentTimeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      
-      let activeEntry: ScheduleEntry | null = null;
-      const sortedSchedule = [...schedule].sort((a, b) => a.time.localeCompare(b.time));
-
-      for (const entry of sortedSchedule) {
-        if (currentTimeString >= entry.time) {
-          activeEntry = entry;
-        } else {
-          break; 
-        }
-      }
-      
-      if (!activeEntry && sortedSchedule.length > 0) {
-          const firstScheduleTime = sortedSchedule[0].time;
-          if (currentTimeString < firstScheduleTime) {
-              activeEntry = sortedSchedule[sortedSchedule.length -1];
-          }
-      }
-
-      if (activeEntry && activeEntry.temperature !== desiredTemperatureRef.current) {
-        setDesiredTemperature(activeEntry.temperature);
-        toast({
-          title: "Schedule Applied",
-          description: `Temperature set to ${activeEntry.temperature}°C by '${activeEntry.name}' schedule.`,
-        });
-      }
-    };
-
-    applySchedule(); 
-    const intervalId = setInterval(applySchedule, 60000); 
-
-    return () => clearInterval(intervalId);
-  }, [schedule, toast]);
-
-
-  const handleAddSchedule = (data: Omit<ScheduleEntry, "id">) => {
-    const newEntry: ScheduleEntry = { ...data, id: crypto.randomUUID() };
-    setSchedule((prev) => [...prev, newEntry]);
-    toast({ title: "Schedule Added", description: `'${newEntry.name}' schedule created.`});
-  };
-
-  const handleUpdateSchedule = (updatedEntry: ScheduleEntry) => {
-    setSchedule((prev) => prev.map((e) => (e.id === updatedEntry.id ? updatedEntry : e)));
-    toast({ title: "Schedule Updated", description: `'${updatedEntry.name}' schedule modified.`});
-  };
-
-  const handleDeleteSchedule = (id: string) => {
-    const entryToDelete = schedule.find(s => s.id === id);
-    setSchedule((prev) => prev.filter((e) => e.id !== id));
-    if (entryToDelete) {
-      toast({ title: "Schedule Deleted", description: `'${entryToDelete.name}' schedule removed.`, variant: "destructive" });
-    }
-  };
-
-  const resetDemoValues = () => {
-    setCurrentTemperature(22);
-    setCurrentHumidity(45);
-    setDesiredTemperature(20);
-    setSchedule([]); 
-    calculateSystemOutput(22, 45, 20);
-    toast({ title: "Demo Reset", description: "All values reset to defaults." });
-  };
-  
-  useEffect(() => {
-    calculateSystemOutput(currentTemperature, currentHumidity, desiredTemperature);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-
+export default function HomePage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <FuzzyStatHeader />
-      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-          <div className="lg:w-2/3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-              <div className="space-y-6"> {/* Column 1 */}
-                <CurrentReadingsCard temperature={currentTemperature} humidity={currentHumidity} />
-                <div className="flex space-x-2 justify-center">
-                    <Button onClick={() => setCurrentTemperature(t => t + 0.5)} size="sm">Temp +</Button>
-                    <Button onClick={() => setCurrentTemperature(t => t - 0.5)} size="sm">Temp -</Button>
-                    <Button onClick={() => setCurrentHumidity(h => Math.min(100, h + 5))} size="sm">Hum +</Button>
-                    <Button onClick={() => setCurrentHumidity(h => Math.max(0, h - 5))} size="sm">Hum -</Button>
-                </div>
-                 <OutputVisualizationCard
-                  heatingOutput={heatingOutput}
-                  coolingOutput={coolingOutput}
-                  reasoning={systemReasoning}
-                />
-              </div>
-              <div className="space-y-6"> {/* Column 2 */}
-                <TemperatureControlCard
-                  desiredTemperature={desiredTemperature}
-                  onDesiredTemperatureChange={setDesiredTemperature}
-                />
-                <ScheduleCard
-                  schedule={schedule}
-                  onAddSchedule={handleAddSchedule}
-                  onUpdateSchedule={handleUpdateSchedule}
-                  onDeleteSchedule={handleDeleteSchedule}
-                />
-                <ClockCard />
-              </div>
-            </div>
+      <header className="py-6 px-4 sm:px-6 lg:px-8 border-b">
+        <div className="container mx-auto">
+          <div className="flex items-center space-x-3">
+            <Gauge className="text-primary h-10 w-10" />
+            <h1 className="text-4xl font-headline font-bold text-foreground">FuzzyStat</h1>
           </div>
+          <p className="text-muted-foreground mt-1 text-lg">Intelligent Thermostat Control, Simplified.</p>
+        </div>
+      </header>
 
-          <div className="lg:w-1/3">
-            <FuzzyLogicDisplayCard
-              currentTemperature={currentTemperature}
-              currentHumidity={currentHumidity}
-              targetTemperature={desiredTemperature}
-              perceivedTemperatureDisplay={perceivedTemperatureDisplay}
-              temperatureDifferenceDisplay={temperatureDifferenceDisplay}
-              humidityEffectReasoningDisplay={humidityEffectReasoningDisplay}
-              heatingOutput={heatingOutput}
-              coolingOutput={coolingOutput}
-              finalReasoning={systemReasoning}
-              deadband={deadband}
+      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-12 flex items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
+          <div>
+            <h2 className="text-5xl lg:text-6xl font-bold tracking-tight text-primary mb-6">
+              Experience Smart Climate Control
+            </h2>
+            <p className="text-xl text-muted-foreground mb-8">
+              Discover FuzzyStat, a demonstration of how fuzzy logic can create a more intuitive and efficient thermostat. 
+              Adjust settings, observe the system&apos;s reasoning, and see intelligent temperature regulation in action.
+            </p>
+            <Link href="/fuzzystat" passHref>
+              <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                Launch FuzzyStat Demo
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+             <p className="mt-6 text-sm text-muted-foreground">
+              Dive into the interactive demo to see how it works!
+            </p>
+          </div>
+          <div className="flex justify-center items-center p-4">
+            <Image
+              src="https://placehold.co/600x450.png"
+              alt="Illustration of a modern smart thermostat interface"
+              width={600}
+              height={450}
+              className="rounded-xl shadow-2xl object-cover"
+              data-ai-hint="thermostat technology interface"
+              priority
             />
           </div>
         </div>
-
-        <div className="mt-8 text-center">
-          <Button variant="outline" onClick={resetDemoValues}>
-            <RotateCcw className="mr-2 h-4 w-4" /> Reset Demo
-          </Button>
-        </div>
       </main>
-      <footer className="text-center py-6 text-sm text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} FuzzyStat. Logic by Rules.</p>
+
+      <footer className="text-center py-8 text-sm text-muted-foreground border-t">
+        <div className="container mx-auto">
+          <p>&copy; {new Date().getFullYear()} FuzzyStat. Smart. Simple. Efficient.</p>
+        </div>
       </footer>
     </div>
   );
