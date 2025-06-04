@@ -8,7 +8,8 @@ import { TemperatureControlCard } from '@/components/FuzzyStat/TemperatureContro
 import { OutputVisualizationCard } from '@/components/FuzzyStat/OutputVisualizationCard';
 import { ScheduleCard } from '@/components/FuzzyStat/ScheduleCard/ScheduleCard';
 import type { ScheduleEntry } from '@/components/FuzzyStat/ScheduleCard/types';
-import { FuzzyLogicDisplayCard } from '@/components/FuzzyStat/FuzzyLogicDisplayCard'; // Added import
+import { FuzzyLogicDisplayCard } from '@/components/FuzzyStat/FuzzyLogicDisplayCard';
+import { ClockCard } from '@/components/FuzzyStat/ClockCard'; // Added import
 import { useToast } from "@/hooks/use-toast";
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
@@ -24,11 +25,10 @@ export default function FuzzyStatPage() {
   
   const [schedule, setSchedule] = useState<ScheduleEntry[]>([]);
 
-  // State for FuzzyLogicDisplayCard
   const [perceivedTemperatureDisplay, setPerceivedTemperatureDisplay] = useState<number | null>(currentTemperature);
   const [temperatureDifferenceDisplay, setTemperatureDifferenceDisplay] = useState<number | null>(desiredTemperature - currentTemperature);
   const [humidityEffectReasoningDisplay, setHumidityEffectReasoningDisplay] = useState<string | null>("Humidity is in the ideal range (40-60%). No perceived temperature adjustment.");
-  const deadband = 0.5; // Explicit deadband for display
+  const deadband = 0.5; 
 
   const { toast } = useToast();
   const desiredTemperatureRef = useRef(desiredTemperature); 
@@ -43,15 +43,17 @@ export default function FuzzyStatPage() {
 
     if (humidity > 60) {
       const adjustment = (humidity - 60) * 0.05; 
-      perceivedTemp -= adjustment; // humidity makes it feel warmer, so perceived (for cooling need) is lower
+      perceivedTemp -= adjustment; 
       humidityEffectReasoning = `Feels ${adjustment.toFixed(1)}°C warmer due to high humidity (${humidity}%)`;
     } else if (humidity < 40) {
       const adjustment = (40 - humidity) * 0.05;
-      perceivedTemp += adjustment; // humidity makes it feel cooler, so perceived (for heating need) is higher
+      perceivedTemp += adjustment; 
       humidityEffectReasoning = `Feels ${adjustment.toFixed(1)}°C cooler due to low humidity (${humidity}%)`;
+    } else {
+       humidityEffectReasoning = "Humidity is in the ideal range (40-60%). No perceived temperature adjustment.";
     }
 
-    const tempDiff = targetTemp - perceivedTemp; // Positive if target is higher (needs heat), negative if target is lower (needs cool)
+    const tempDiff = targetTemp - perceivedTemp; 
     let newHeatingOutput = 0;
     let newCoolingOutput = 0;
     let newReasoning = "";
@@ -74,7 +76,6 @@ export default function FuzzyStatPage() {
     setCoolingOutput(newCoolingOutput);
     setSystemReasoning(newReasoning);
 
-    // Update display state
     setPerceivedTemperatureDisplay(perceivedTemp);
     setTemperatureDifferenceDisplay(tempDiff);
     setHumidityEffectReasoningDisplay(humidityEffectReasoning.trim() ? humidityEffectReasoning : "Humidity is in the ideal range (40-60%). No perceived temperature adjustment.");
@@ -150,12 +151,10 @@ export default function FuzzyStatPage() {
     setCurrentHumidity(45);
     setDesiredTemperature(20);
     setSchedule([]); 
-    // Initial calculation for display values
     calculateSystemOutput(22, 45, 20);
     toast({ title: "Demo Reset", description: "All values reset to defaults." });
   };
   
-  // Initial calculation on mount for display values
   useEffect(() => {
     calculateSystemOutput(currentTemperature, currentHumidity, desiredTemperature);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -167,10 +166,10 @@ export default function FuzzyStatPage() {
       <FuzzyStatHeader />
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-          {/* Main content area (2/3 width on large screens) */}
           <div className="lg:w-2/3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
               <div className="space-y-6"> {/* Column 1 */}
+                <ClockCard />
                 <CurrentReadingsCard temperature={currentTemperature} humidity={currentHumidity} />
                 <div className="flex space-x-2 justify-center">
                     <Button onClick={() => setCurrentTemperature(t => t + 0.5)} size="sm">Temp +</Button>
@@ -199,7 +198,6 @@ export default function FuzzyStatPage() {
             </div>
           </div>
 
-          {/* Sidebar for fuzzy logic calculations (1/3 width on large screens) */}
           <div className="lg:w-1/3">
             <FuzzyLogicDisplayCard
               currentTemperature={currentTemperature}
