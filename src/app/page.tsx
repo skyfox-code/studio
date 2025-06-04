@@ -8,6 +8,7 @@ import { TemperatureControlCard } from '@/components/FuzzyStat/TemperatureContro
 import { OutputVisualizationCard } from '@/components/FuzzyStat/OutputVisualizationCard';
 import { ScheduleCard } from '@/components/FuzzyStat/ScheduleCard/ScheduleCard';
 import type { ScheduleEntry } from '@/components/FuzzyStat/ScheduleCard/types';
+import { FuzzyLogicDisplayCard } from '@/components/FuzzyStat/FuzzyLogicDisplayCard'; // Added import
 import { useToast } from "@/hooks/use-toast";
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
@@ -23,6 +24,12 @@ export default function FuzzyStatPage() {
   
   const [schedule, setSchedule] = useState<ScheduleEntry[]>([]);
 
+  // State for FuzzyLogicDisplayCard
+  const [perceivedTemperatureDisplay, setPerceivedTemperatureDisplay] = useState<number | null>(currentTemperature);
+  const [temperatureDifferenceDisplay, setTemperatureDifferenceDisplay] = useState<number | null>(desiredTemperature - currentTemperature);
+  const [humidityEffectReasoningDisplay, setHumidityEffectReasoningDisplay] = useState<string | null>("Humidity is in the ideal range (40-60%). No perceived temperature adjustment.");
+  const deadband = 0.5; // Explicit deadband for display
+
   const { toast } = useToast();
   const desiredTemperatureRef = useRef(desiredTemperature); 
 
@@ -35,47 +42,49 @@ export default function FuzzyStatPage() {
     let humidityEffectReasoning = "";
 
     if (humidity > 60) {
-      const adjustment = (humidity - 60) * 0.05; // Each 1% over 60% feels 0.05C warmer
-      perceivedTemp -= adjustment;
-      humidityEffectReasoning = ` (feels like ${perceivedTemp.toFixed(1)}°C due to high humidity of ${humidity}%)`;
+      const adjustment = (humidity - 60) * 0.05; 
+      perceivedTemp -= adjustment; // humidity makes it feel warmer, so perceived (for cooling need) is lower
+      humidityEffectReasoning = `Feels ${adjustment.toFixed(1)}°C warmer due to high humidity (${humidity}%)`;
     } else if (humidity < 40) {
-      const adjustment = (40 - humidity) * 0.05; // Each 1% under 40% feels 0.05C cooler
-      perceivedTemp += adjustment;
-      humidityEffectReasoning = ` (feels like ${perceivedTemp.toFixed(1)}°C due to low humidity of ${humidity}%)`;
+      const adjustment = (40 - humidity) * 0.05;
+      perceivedTemp += adjustment; // humidity makes it feel cooler, so perceived (for heating need) is higher
+      humidityEffectReasoning = `Feels ${adjustment.toFixed(1)}°C cooler due to low humidity (${humidity}%)`;
     }
 
-    const tempDiff = targetTemp - perceivedTemp; // Positive if too cold, negative if too hot
+    const tempDiff = targetTemp - perceivedTemp; // Positive if target is higher (needs heat), negative if target is lower (needs cool)
     let newHeatingOutput = 0;
     let newCoolingOutput = 0;
     let newReasoning = "";
 
-    // Define a deadband of +/- 0.5C around the target
-    const deadband = 0.5;
-
-    if (tempDiff > deadband) { // Need to heat
-      newHeatingOutput = Math.min(100, Math.max(0, (tempDiff - deadband) * 25)); // Proportional heating, 4C effective diff for 100%
+    if (tempDiff > deadband) { 
+      newHeatingOutput = Math.min(100, Math.max(0, (tempDiff - deadband) * 25)); 
       newCoolingOutput = 0;
-      newReasoning = `Heating: Current temperature ${temp.toFixed(1)}°C${humidityEffectReasoning} is below the target of ${targetTemp.toFixed(1)}°C.`;
-    } else if (tempDiff < -deadband) { // Need to cool
+      newReasoning = `Heating: Effective temperature ${perceivedTemp.toFixed(1)}°C is below the target of ${targetTemp.toFixed(1)}°C by more than the ${deadband}°C deadband.`;
+    } else if (tempDiff < -deadband) { 
       newHeatingOutput = 0;
-      newCoolingOutput = Math.min(100, Math.max(0, (Math.abs(tempDiff) - deadband) * 25)); // Proportional cooling
-      newReasoning = `Cooling: Current temperature ${temp.toFixed(1)}°C${humidityEffectReasoning} is above the target of ${targetTemp.toFixed(1)}°C.`;
-    } else { // Within deadband, idle
+      newCoolingOutput = Math.min(100, Math.max(0, (Math.abs(tempDiff) - deadband) * 25)); 
+      newReasoning = `Cooling: Effective temperature ${perceivedTemp.toFixed(1)}°C is above the target of ${targetTemp.toFixed(1)}°C by more than the ${deadband}°C deadband.`;
+    } else { 
       newHeatingOutput = 0;
       newCoolingOutput = 0;
-      newReasoning = `Idle: Current temperature ${temp.toFixed(1)}°C${humidityEffectReasoning} is close to the target of ${targetTemp.toFixed(1)}°C.`;
+      newReasoning = `Idle: Effective temperature ${perceivedTemp.toFixed(1)}°C is within ±${deadband}°C of the target ${targetTemp.toFixed(1)}°C.`;
     }
 
     setHeatingOutput(newHeatingOutput);
     setCoolingOutput(newCoolingOutput);
     setSystemReasoning(newReasoning);
-  }, []); // Removed dependencies on setHeatingOutput, setCoolingOutput, setSystemReasoning as they are stable
+
+    // Update display state
+    setPerceivedTemperatureDisplay(perceivedTemp);
+    setTemperatureDifferenceDisplay(tempDiff);
+    setHumidityEffectReasoningDisplay(humidityEffectReasoning.trim() ? humidityEffectReasoning : "Humidity is in the ideal range (40-60%). No perceived temperature adjustment.");
+
+  }, []); 
 
   useEffect(() => {
     calculateSystemOutput(currentTemperature, currentHumidity, desiredTemperature);
   }, [currentTemperature, currentHumidity, desiredTemperature, calculateSystemOutput]);
 
-  // Schedule application logic
   useEffect(() => {
     const applySchedule = () => {
       if (schedule.length === 0) return;
@@ -141,43 +150,76 @@ export default function FuzzyStatPage() {
     setCurrentHumidity(45);
     setDesiredTemperature(20);
     setSchedule([]); 
+    // Initial calculation for display values
+    calculateSystemOutput(22, 45, 20);
     toast({ title: "Demo Reset", description: "All values reset to defaults." });
   };
+  
+  // Initial calculation on mount for display values
+  useEffect(() => {
+    calculateSystemOutput(currentTemperature, currentHumidity, desiredTemperature);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <FuzzyStatHeader />
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-          <div className="space-y-6 lg:space-y-8">
-            <CurrentReadingsCard temperature={currentTemperature} humidity={currentHumidity} />
-             <div className="flex space-x-2 justify-center">
-                <Button onClick={() => setCurrentTemperature(t => t + 0.5)}>Temp +</Button>
-                <Button onClick={() => setCurrentTemperature(t => t - 0.5)}>Temp -</Button>
-                <Button onClick={() => setCurrentHumidity(h => Math.min(100, h + 5))}>Hum +</Button>
-                <Button onClick={() => setCurrentHumidity(h => Math.max(0, h - 5))}>Hum -</Button>
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+          {/* Main content area (2/3 width on large screens) */}
+          <div className="lg:w-2/3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+              <div className="space-y-6"> {/* Column 1 */}
+                <CurrentReadingsCard temperature={currentTemperature} humidity={currentHumidity} />
+                <div className="flex space-x-2 justify-center">
+                    <Button onClick={() => setCurrentTemperature(t => t + 0.5)} size="sm">Temp +</Button>
+                    <Button onClick={() => setCurrentTemperature(t => t - 0.5)} size="sm">Temp -</Button>
+                    <Button onClick={() => setCurrentHumidity(h => Math.min(100, h + 5))} size="sm">Hum +</Button>
+                    <Button onClick={() => setCurrentHumidity(h => Math.max(0, h - 5))} size="sm">Hum -</Button>
+                </div>
+                 <OutputVisualizationCard
+                  heatingOutput={heatingOutput}
+                  coolingOutput={coolingOutput}
+                  reasoning={systemReasoning}
+                />
+              </div>
+              <div className="space-y-6"> {/* Column 2 */}
+                <TemperatureControlCard
+                  desiredTemperature={desiredTemperature}
+                  onDesiredTemperatureChange={setDesiredTemperature}
+                />
+                <ScheduleCard
+                  schedule={schedule}
+                  onAddSchedule={handleAddSchedule}
+                  onUpdateSchedule={handleUpdateSchedule}
+                  onDeleteSchedule={handleDeleteSchedule}
+                />
+              </div>
             </div>
           </div>
-          <TemperatureControlCard
-            desiredTemperature={desiredTemperature}
-            onDesiredTemperatureChange={setDesiredTemperature}
-          />
-          <OutputVisualizationCard
-            heatingOutput={heatingOutput}
-            coolingOutput={coolingOutput}
-            reasoning={systemReasoning}
-          />
-          <ScheduleCard
-            schedule={schedule}
-            onAddSchedule={handleAddSchedule}
-            onUpdateSchedule={handleUpdateSchedule}
-            onDeleteSchedule={handleDeleteSchedule}
-          />
+
+          {/* Sidebar for fuzzy logic calculations (1/3 width on large screens) */}
+          <div className="lg:w-1/3">
+            <FuzzyLogicDisplayCard
+              currentTemperature={currentTemperature}
+              currentHumidity={currentHumidity}
+              targetTemperature={desiredTemperature}
+              perceivedTemperatureDisplay={perceivedTemperatureDisplay}
+              temperatureDifferenceDisplay={temperatureDifferenceDisplay}
+              humidityEffectReasoningDisplay={humidityEffectReasoningDisplay}
+              heatingOutput={heatingOutput}
+              coolingOutput={coolingOutput}
+              finalReasoning={systemReasoning}
+              deadband={deadband}
+            />
+          </div>
         </div>
-         <div className="mt-8 text-center">
-            <Button variant="outline" onClick={resetDemoValues}>
-                <RotateCcw className="mr-2 h-4 w-4" /> Reset Demo
-            </Button>
+
+        <div className="mt-8 text-center">
+          <Button variant="outline" onClick={resetDemoValues}>
+            <RotateCcw className="mr-2 h-4 w-4" /> Reset Demo
+          </Button>
         </div>
       </main>
       <footer className="text-center py-6 text-sm text-muted-foreground">
