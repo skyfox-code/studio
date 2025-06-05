@@ -6,7 +6,7 @@ import { SecureMessageHeader } from '@/components/SecureMessage/SecureMessageHea
 import { UserPanel } from '@/components/SecureMessage/UserPanel';
 import { KeyDisplay } from '@/components/SecureMessage/KeyDisplay';
 import { encryptMessage, decryptMessage } from '@/lib/secure-message-utils';
-import { ArrowRightToLine, User, UserCheck, Send, MessageSquareDashed } from 'lucide-react';
+import { ArrowRightToLine, User, UserCheck, Send, MessageSquareDashed, RotateCcw } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +16,7 @@ export default function SecureMessagePage() {
   const [encryptedMessage, setEncryptedMessage] = useState<string>('');
   const [messageForReceiver, setMessageForReceiver] = useState<string>('');
   const [decryptedMessage, setDecryptedMessage] = useState<string>('');
-  const [sharedKey, setSharedKey] = useState<string>('SECRETKEY'); // Hardcoded for demo
+  const [sharedKey, setSharedKey] = useState<string>('SECRETKEY');
 
   const { toast } = useToast();
 
@@ -31,8 +31,8 @@ export default function SecureMessagePage() {
     }
     const encMsg = encryptMessage(originalMessage, sharedKey);
     setEncryptedMessage(encMsg);
-    setMessageForReceiver(encMsg); // Simulate "sending"
-    setDecryptedMessage(''); // Clear previous decryption
+    setMessageForReceiver(encMsg); 
+    setDecryptedMessage(''); 
     toast({ title: "Message Encrypted", description: "Message encrypted and 'sent' to receiver."});
   };
 
@@ -50,12 +50,24 @@ export default function SecureMessagePage() {
     toast({ title: "Message Decrypted", description: "Received message has been decrypted."});
   };
 
+  const handleSetSharedKey = (newKey: string) => {
+    setSharedKey(newKey);
+    setOriginalMessage(''); // Clear original message as it might be confusing with a new key
+    setEncryptedMessage('');
+    setMessageForReceiver('');
+    setDecryptedMessage('');
+    toast({
+      title: "Shared Key Updated",
+      description: "The secret key has been changed. All message fields have been cleared.",
+    });
+  };
+
   const handleResetDemo = () => {
     setOriginalMessage('');
     setEncryptedMessage('');
     setMessageForReceiver('');
     setDecryptedMessage('');
-    // setSharedKey('SECRETKEY'); // Key could be made configurable in future
+    setSharedKey('SECRETKEY'); 
     toast({ title: "Demo Reset", description: "Secure Message Demo has been reset."});
   };
 
@@ -110,7 +122,7 @@ export default function SecureMessagePage() {
             Icon={UserCheck}
             inputLabel="Received Encrypted Message"
             inputValue={messageForReceiver}
-            isInputDisabled={true} // Receiver cannot edit the encrypted message
+            isInputDisabled={true} 
             actionButtonLabel="Decrypt Message"
             onActionButtonClick={handleDecrypt}
             isActionButtonDisabled={!messageForReceiver.trim()}
@@ -121,11 +133,11 @@ export default function SecureMessagePage() {
           />
         </div>
 
-        <KeyDisplay sharedKey={sharedKey} />
+        <KeyDisplay sharedKey={sharedKey} onSetSharedKey={handleSetSharedKey} />
 
         <div className="mt-10 text-center">
           <Button variant="outline" onClick={handleResetDemo}>
-            Reset Demo
+            <RotateCcw className="mr-2 h-4 w-4" /> Reset Demo
           </Button>
         </div>
       </main>

@@ -1,35 +1,70 @@
 
 "use client";
 
-import { KeyRound, Eye, EyeOff } from 'lucide-react';
+import { KeyRound, Eye, EyeOff, Edit3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useState } from 'react';
+import { useToast } from "@/hooks/use-toast";
 
 interface KeyDisplayProps {
   sharedKey: string;
+  onSetSharedKey: (newKey: string) => void;
 }
 
-export function KeyDisplay({ sharedKey }: KeyDisplayProps) {
+export function KeyDisplay({ sharedKey, onSetSharedKey }: KeyDisplayProps) {
   const [showKey, setShowKey] = useState(false);
+  const [newKeyInput, setNewKeyInput] = useState<string>('');
+  const { toast } = useToast();
+
+  const handleSetKeyClick = () => {
+    if (!newKeyInput.trim()) {
+      toast({
+        title: "Input Missing",
+        description: "Please enter a new key.",
+        variant: "destructive",
+      });
+      return;
+    }
+    onSetSharedKey(newKeyInput);
+    // setNewKeyInput(''); // Optionally clear after setting
+  };
 
   return (
     <Card className="mt-6">
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-lg font-semibold font-headline flex items-center">
-          <KeyRound className="h-5 w-5 mr-2 text-primary" />
-          Shared Secret Key
-        </CardTitle>
-        <Button variant="ghost" size="icon" onClick={() => setShowKey(!showKey)} aria-label={showKey ? "Hide key" : "Show key"}>
-          {showKey ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-        </Button>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold font-headline flex items-center">
+            <KeyRound className="h-5 w-5 mr-2 text-primary" />
+            Shared Secret Key
+          </CardTitle>
+          <Button variant="ghost" size="icon" onClick={() => setShowKey(!showKey)} aria-label={showKey ? "Hide key" : "Show key"}>
+            {showKey ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+          </Button>
+        </div>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">
-          This key is used by both sender and receiver for encryption and decryption. In a real E2EE system, key exchange is a critical and complex process.
-        </p>
-        <div className="mt-2 p-2 bg-muted rounded-md font-mono text-sm break-all">
-          {showKey ? sharedKey : '••••••••••••••••'}
+      <CardContent className="space-y-3">
+        <div>
+          <p className="text-sm text-muted-foreground">
+            This key is used for encryption and decryption. Changing it will clear current messages.
+          </p>
+          <div className="mt-2 p-2 bg-muted rounded-md font-mono text-sm break-all">
+            {showKey ? sharedKey : '••••••••••••••••'}
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Input
+            type="text"
+            placeholder="Enter new secret key"
+            value={newKeyInput}
+            onChange={(e) => setNewKeyInput(e.target.value)}
+            aria-label="New secret key input"
+          />
+          <Button onClick={handleSetKeyClick} className="w-full">
+            <Edit3 className="mr-2 h-4 w-4" />
+            Set New Key
+          </Button>
         </div>
       </CardContent>
     </Card>
