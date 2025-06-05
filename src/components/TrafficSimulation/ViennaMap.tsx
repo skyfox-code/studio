@@ -18,13 +18,11 @@ export const ViennaMap: FC<ViennaMapProps> = () => {
   useEffect(() => {
     // This effect runs once after the component mounts on the client-side.
     setIsClient(true);
-  }, []);
 
-  useEffect(() => {
     // Fix for default Leaflet icon path issue with Webpack/Next.js
-    // This code now runs only on the client, after the component has mounted.
-    // And after isClient is true, though the icon setup itself is not dependent on MapContainer rendering.
-    if (isClient) { // Or just run it once as before, it's usually fine.
+    // This code should run only once on the client, after the initial mount.
+    // Guarded to prevent re-application on HMR or Strict Mode re-runs.
+    if (!(L.Icon.Default.prototype as any)._iconUrlWasFixed) {
       try {
         delete (L.Icon.Default.prototype as any)._getIconUrl;
         L.Icon.Default.mergeOptions({
@@ -32,11 +30,12 @@ export const ViennaMap: FC<ViennaMapProps> = () => {
           iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
           shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
         });
+        (L.Icon.Default.prototype as any)._iconUrlWasFixed = true; // Mark as fixed
       } catch (e) {
         console.error("Leaflet icon setup error:", e);
       }
     }
-  }, [isClient]); // Icon setup can also be in its own useEffect with empty deps.
+  }, []); // Empty dependency array ensures this runs once on mount
 
   // The MapContainer is designed to only render on the client-side.
   // The "use client" directive at the top of the file is essential.
