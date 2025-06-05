@@ -5,20 +5,17 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import type { FC } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 interface ViennaMapProps {
   // Props for zoom levels, traffic data overlays, etc., will be added later
 }
 
 export const ViennaMap: FC<ViennaMapProps> = () => {
-  const [isClient, setIsClient] = useState(false);
   const viennaPosition: L.LatLngExpression = [48.2082, 16.3738]; // Coordinates for Vienna
 
   useEffect(() => {
     // This effect runs once after the component mounts on the client-side.
-    setIsClient(true);
-
     // Fix for default Leaflet icon path issue with Webpack/Next.js
     // This code should run only once on the client, after the initial mount.
     // Guarded to prevent re-application on HMR or Strict Mode re-runs.
@@ -37,15 +34,9 @@ export const ViennaMap: FC<ViennaMapProps> = () => {
     }
   }, []); // Empty dependency array ensures this runs once on mount
 
+  // Since this component is dynamically imported with ssr: false by its parent (SimulationViewCard),
+  // it should only ever render on the client side.
   // The MapContainer is designed to only render on the client-side.
-  // The "use client" directive at the top of the file is essential.
-  // We also ensure it only renders after isClient is true.
-  if (!isClient) {
-    // The dynamic import in the parent component already provides a loading state.
-    // Returning null here will keep that loading state visible until isClient is true.
-    return null;
-  }
-
   return (
     <MapContainer
         center={viennaPosition}
