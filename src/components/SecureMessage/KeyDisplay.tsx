@@ -1,7 +1,7 @@
 
 "use client";
 
-import { KeyRound, Eye, EyeOff, Edit3 } from 'lucide-react';
+import { KeyRound, Eye, EyeOff, Edit3, Shuffle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +31,19 @@ export function KeyDisplay({ sharedKey, onSetSharedKey }: KeyDisplayProps) {
     // setNewKeyInput(''); // Optionally clear after setting
   };
 
+  const handleRandomizeKeyClick = () => {
+    const randomKey = Array(16)
+      .fill(null)
+      .map(() => Math.random().toString(36).charAt(2))
+      .join('');
+    setNewKeyInput(''); // Clear the input field
+    onSetSharedKey(randomKey);
+    toast({
+        title: "Key Randomized",
+        description: "A new random secret key has been generated and set."
+    })
+  };
+
   return (
     <Card className="mt-6">
       <CardHeader className="pb-3">
@@ -56,15 +69,21 @@ export function KeyDisplay({ sharedKey, onSetSharedKey }: KeyDisplayProps) {
         <div className="space-y-2">
           <Input
             type="text"
-            placeholder="Enter new secret key"
+            placeholder="Enter new secret key or randomize"
             value={newKeyInput}
             onChange={(e) => setNewKeyInput(e.target.value)}
             aria-label="New secret key input"
           />
-          <Button onClick={handleSetKeyClick} className="w-full">
-            <Edit3 className="mr-2 h-4 w-4" />
-            Set New Key
-          </Button>
+          <div className="flex space-x-2">
+            <Button onClick={handleSetKeyClick} className="flex-1">
+              <Edit3 className="mr-2 h-4 w-4" />
+              Set New Key
+            </Button>
+            <Button onClick={handleRandomizeKeyClick} variant="outline" className="flex-1">
+              <Shuffle className="mr-2 h-4 w-4" />
+              Randomize Key
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
