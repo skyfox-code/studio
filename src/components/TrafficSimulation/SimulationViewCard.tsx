@@ -3,15 +3,24 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { format } from 'date-fns';
-import { CarFront, Clock4 } from "lucide-react";
-import { ViennaMap } from './ViennaMap'; // Import the new map component
-// TrafficZone type and trafficLevelColors might be reused later for map overlays
-// type TrafficLevel = "Light" | "Moderate" | "Heavy" | "Standstill";
-// interface TrafficZone {
-//   id: string;
-//   name: string;
-//   currentLevel: TrafficLevel;
-// }
+import { CarFront, Clock4, Loader2 } from "lucide-react";
+import dynamic from 'next/dynamic';
+import type { ComponentType } from 'react';
+
+// Dynamically import ViennaMap with ssr: false
+const ViennaMap: ComponentType<Record<string, never>> = dynamic(
+  () => import('./ViennaMap').then((mod) => mod.ViennaMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2 text-muted-foreground">Loading map...</p>
+      </div>
+    ),
+  }
+);
+
 
 interface SimulationViewCardProps {
   simulatedTime: Date;
@@ -36,20 +45,9 @@ export function SimulationViewCard({ simulatedTime }: SimulationViewCardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-grow flex flex-col p-4 pt-2">
-        {/* Replace the list of zones with the ViennaMap component */}
-        <ViennaMap />
-        {/* 
-          The previous list of zones:
-          {trafficZones.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">Simulation not started or no zones defined.</p>
-          ) : (
-            <div className="space-y-3">
-              {trafficZones.map((zone) => (
-                // ... zone item rendering ...
-              ))}
-            </div>
-          )} 
-        */}
+        <div className="w-full h-[400px] md:h-[500px] lg:h-full min-h-[300px] rounded-lg shadow-md border overflow-hidden">
+          <ViennaMap />
+        </div>
       </CardContent>
     </Card>
   );
