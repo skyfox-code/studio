@@ -1,6 +1,4 @@
 
-'use server';
-
 /**
  * @fileOverview Utility functions for mock encryption and decryption for the Secure Message Demo.
  * NOTE: This is NOT real cryptography and should NOT be used for actual secure communication.
