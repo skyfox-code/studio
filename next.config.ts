@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -16,6 +17,13 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+    ],
+  },
+  experimental: {
+    // Add the allowedDevOrigins configuration here
+    allowedDevOrigins: [
+      "https://*.cluster-c3a7z3wnwzapkx3rfr5kz62dac.cloudworkstations.dev",
+      // You can add more trusted origins if needed
     ],
   },
 };
