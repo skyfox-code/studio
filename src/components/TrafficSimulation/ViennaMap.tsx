@@ -7,18 +7,17 @@ import L from 'leaflet';
 import type { FC } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
-interface ViennaMapProps {
-  // Props for zoom levels, traffic data overlays, etc., will be added later
-}
+// ViennaMapProps can be extended later if needed
+interface ViennaMapProps {}
 
 export const ViennaMap: FC<ViennaMapProps> = () => {
   const viennaPosition: L.LatLngExpression = [48.2082, 16.3738];
   const mapInstanceRef = useRef<L.Map | null>(null);
-  const [clientSideReady, setClientSideReady] = useState(false);
+  const [isClient, setIsClient] = useState(false); // State to track client-side readiness
 
   useEffect(() => {
     // This effect runs after the component mounts on the client-side.
-    setClientSideReady(true); // Signal that client-side setup is complete.
+    setIsClient(true); // Signal that client-side setup is complete.
 
     // Fix for default Leaflet icon path issue
     // Guarded to prevent re-application on HMR or Strict Mode re-runs.
@@ -46,17 +45,20 @@ export const ViennaMap: FC<ViennaMapProps> = () => {
     };
   }, []); // Empty dependency array ensures this runs once on mount and cleanup on unmount.
 
-  if (!clientSideReady) {
-    // Render a placeholder or null while waiting for the client-side effect to run.
-    return <div className="w-full h-full flex items-center justify-center bg-muted rounded-lg shadow-md border"><p>Loading map component...</p></div>;
+  if (!isClient) {
+    // Render null or a minimal placeholder while waiting for the client-side effect to run.
+    // The parent component (SimulationViewCard) uses dynamic import with a loading fallback,
+    // so this primarily helps manage StrictMode's double invocation.
+    return null;
   }
 
   return (
     <MapContainer
-        // Add a key that changes when clientSideReady becomes true.
-        // This forces React to unmount any previous MapContainer (if StrictMode caused one)
-        // and mount a new one, which can resolve initialization conflicts.
-        key={clientSideReady ? "leaflet-map-ready" : "leaflet-map-loading"}
+        // Using isClient.toString() as a key ensures that when isClient flips from false to true,
+        // React treats this as a completely new MapContainer instance, unmounting any old one
+        // and mounting a fresh one. This is very effective for libraries with complex DOM lifecycles
+        // in React StrictMode.
+        key={isClient.toString()}
         center={viennaPosition}
         zoom={12}
         scrollWheelZoom={true}
