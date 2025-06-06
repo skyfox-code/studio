@@ -14,12 +14,13 @@ interface ViennaMapProps {
 export const ViennaMap: FC<ViennaMapProps> = () => {
   const viennaPosition: L.LatLngExpression = [48.2082, 16.3738];
   const mapInstanceRef = useRef<L.Map | null>(null);
-  const [isMapReady, setIsMapReady] = useState(false);
+  const [clientSideReady, setClientSideReady] = useState(false);
 
   useEffect(() => {
     // This effect runs after the component mounts on the client-side.
+    setClientSideReady(true); // Signal that client-side setup is complete.
 
-    // Fix for default Leaflet icon path issue with Webpack/Next.js
+    // Fix for default Leaflet icon path issue
     // Guarded to prevent re-application on HMR or Strict Mode re-runs.
     if (!(L.Icon.Default.prototype as any)._iconUrlWasFixed) {
       try {
@@ -35,8 +36,6 @@ export const ViennaMap: FC<ViennaMapProps> = () => {
       }
     }
 
-    setIsMapReady(true); // Signal that client-side setup is complete and MapContainer can render.
-
     // Cleanup function: This is crucial for HMR and StrictMode.
     // It ensures the Leaflet map instance is destroyed when the component unmounts or re-runs in StrictMode.
     return () => {
@@ -44,20 +43,20 @@ export const ViennaMap: FC<ViennaMapProps> = () => {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
-      // We don't set isMapReady to false here, as the component instance is being destroyed.
-      // A new instance will re-initialize isMapReady to false.
     };
   }, []); // Empty dependency array ensures this runs once on mount and cleanup on unmount.
 
-  if (!isMapReady) {
+  if (!clientSideReady) {
     // Render a placeholder or null while waiting for the client-side effect to run.
-    // This prevents MapContainer from attempting to initialize prematurely.
-    // The parent (SimulationViewCard) already has a loading indicator for the dynamic import.
-    return <div className="w-full h-full flex items-center justify-center bg-muted rounded-lg shadow-md border"><p>Loading map...</p></div>;
+    return <div className="w-full h-full flex items-center justify-center bg-muted rounded-lg shadow-md border"><p>Loading map component...</p></div>;
   }
 
   return (
     <MapContainer
+        // Add a key that changes when clientSideReady becomes true.
+        // This forces React to unmount any previous MapContainer (if StrictMode caused one)
+        // and mount a new one, which can resolve initialization conflicts.
+        key={clientSideReady ? "leaflet-map-ready" : "leaflet-map-loading"}
         center={viennaPosition}
         zoom={12}
         scrollWheelZoom={true}
