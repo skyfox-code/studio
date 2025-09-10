@@ -113,7 +113,15 @@ export default function SnakePage() {
     // --- Keyboard Controls ---
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-             if (directionChangeLock.current) return;
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                if (gameState === 'playing' || gameState === 'gameover') {
+                    setGameState("start");
+                }
+                return;
+            }
+            
+            if (directionChangeLock.current) return;
 
             let newDirection: Direction | null = null;
             switch (e.key) {
@@ -138,7 +146,7 @@ export default function SnakePage() {
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [direction]);
+    }, [direction, gameState]);
 
 
     return (
@@ -189,6 +197,7 @@ export default function SnakePage() {
                             <Gamepad2 className="mr-3 h-6 w-6" /> Start Game
                         </Button>
                         <p className="mt-8 text-slate-400">Use <span className="font-semibold text-accent">Arrow Keys</span> to move</p>
+                        <p className="mt-2 text-slate-400">Press <span className="font-semibold text-accent">Esc</span> to return to this screen</p>
                     </div>
                 )}
 
