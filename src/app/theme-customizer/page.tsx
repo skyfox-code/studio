@@ -77,8 +77,9 @@ export default function ThemeCustomizerPage() {
   const [primaryColor, setPrimaryColor] = useState('#64B5F6');
   const [accentColor, setAccentColor] = useState('#FFB74D');
   const [backgroundColor, setBackgroundColor] = useState('#F0F4F8');
+  const [buttonColor, setButtonColor] = useState('#FFB74D');
   
-  const [defaultColors, setDefaultColors] = useState({ primary: '', accent: '', background: '' });
+  const [defaultColors, setDefaultColors] = useState({ primary: '', accent: '', background: '', button: '' });
 
 
   useEffect(() => {
@@ -86,19 +87,26 @@ export default function ThemeCustomizerPage() {
     const primary = getInitialColor('--primary', '#64B5F6');
     const accent = getInitialColor('--accent', '#FFB74D');
     const background = getInitialColor('--background', '#F0F4F8');
+    const button = getInitialColor('--button', '#FFB74D');
 
     setPrimaryColor(primary);
     setAccentColor(accent);
     setBackgroundColor(background);
+    setButtonColor(button);
 
     // Store the initial server-rendered colors as defaults
-    setDefaultColors({ primary, accent, background });
+    setDefaultColors({ primary, accent, background, button });
   }, []);
 
   const updateColorVariable = (variableName: string, hexColor: string) => {
     const hslColor = hexToHsl(hexColor);
     if (hslColor) {
       document.documentElement.style.setProperty(variableName, hslColor);
+      if (variableName === '--button') {
+        const [h, s, l] = hslColor.split(' ').map(str => parseInt(str.replace('%', '')));
+        const foregroundL = l > 50 ? 10 : 98; // Simple foreground logic: dark text on light bg, light text on dark bg.
+        document.documentElement.style.setProperty('--button-foreground', `${h} 80% ${foregroundL}%`);
+      }
     }
   };
 
@@ -106,11 +114,13 @@ export default function ThemeCustomizerPage() {
   useEffect(() => updateColorVariable('--ring', primaryColor), [primaryColor]);
   useEffect(() => updateColorVariable('--accent', accentColor), [accentColor]);
   useEffect(() => updateColorVariable('--background', backgroundColor), [backgroundColor]);
+  useEffect(() => updateColorVariable('--button', buttonColor), [buttonColor]);
 
   const handleReset = () => {
     setPrimaryColor(defaultColors.primary);
     setAccentColor(defaultColors.accent);
     setBackgroundColor(defaultColors.background);
+    setButtonColor(defaultColors.button);
     toast({
       title: "Theme Reset",
       description: "Colors have been reset to their default values.",
@@ -162,6 +172,20 @@ export default function ThemeCustomizerPage() {
                     className="w-16 h-10 p-1 appearance-none bg-transparent border-2 border-accent rounded-md cursor-pointer"
                 />
                  <span className="font-mono text-sm absolute left-full ml-3 top-1/2 -translate-y-1/2 text-muted-foreground">{accentColor.toUpperCase()}</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="buttonColor" className="text-lg">Button Color</Label>
+            <div className="relative">
+                 <Input
+                    id="buttonColor"
+                    type="color"
+                    value={buttonColor}
+                    onChange={(e) => setButtonColor(e.target.value)}
+                    className="w-16 h-10 p-1 appearance-none bg-transparent border-2 border-border rounded-md cursor-pointer"
+                    style={{borderColor: buttonColor}}
+                />
+                <span className="font-mono text-sm absolute left-full ml-3 top-1/2 -translate-y-1/2 text-muted-foreground">{buttonColor.toUpperCase()}</span>
             </div>
           </div>
           <div className="flex items-center justify-between">

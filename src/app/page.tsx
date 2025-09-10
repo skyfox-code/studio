@@ -91,7 +91,7 @@ export default function HomePage() {
               </CardContent>
               <CardFooter className="mt-auto">
                 <Link href="/fuzzystat" passHref className="w-full">
-                  <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-md py-3">
+                  <Button variant="brand" className="w-full text-md py-3">
                     Launch FuzzyStat
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
@@ -126,7 +126,7 @@ export default function HomePage() {
               </CardContent>
               <CardFooter className="mt-auto">
                 <Link href="/secure-message" passHref className="w-full">
-                  <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-md py-3">
+                  <Button variant="brand" className="w-full text-md py-3">
                     Launch Secure Message
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
@@ -161,7 +161,7 @@ export default function HomePage() {
               </CardContent>
               <CardFooter className="mt-auto">
                 <Link href="/theme-customizer" passHref className="w-full">
-                  <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-md py-3">
+                  <Button variant="brand" className="w-full text-md py-3">
                     Launch Customizer
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
@@ -196,7 +196,7 @@ export default function HomePage() {
               </CardContent>
               <CardFooter className="mt-auto">
                 <Link href="/asteroids" passHref className="w-full">
-                  <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-md py-3">
+                  <Button variant="brand" className="w-full text-md py-3">
                     Launch Asteroids
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
@@ -231,7 +231,7 @@ export default function HomePage() {
               </CardContent>
               <CardFooter className="mt-auto">
                 <Link href="/snake" passHref className="w-full">
-                  <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-md py-3">
+                  <Button variant="brand" className="w-full text-md py-3">
                     Launch Snake
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>

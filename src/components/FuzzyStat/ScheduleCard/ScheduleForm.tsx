@@ -98,7 +98,7 @@ export function ScheduleForm({ onSubmit, onCancel, defaultValues }: ScheduleForm
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" className="bg-accent hover:bg-accent/90 text-accent-foreground">Save Schedule</Button>
+          <Button type="submit" variant="brand">Save Schedule</Button>
         </div>
       </form>
     </Form>

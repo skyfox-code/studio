@@ -445,7 +445,7 @@ export default function AsteroidsPage() {
                 {gameState === "start" && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70">
                         <h2 className="text-5xl font-bold mb-4">ASTEROIDS</h2>
-                        <Button onClick={startGame} className="bg-accent hover:bg-accent/90 text-accent-foreground text-xl py-6 px-8">
+                        <Button variant="brand" onClick={startGame} className="text-xl py-6 px-8">
                             <Gamepad2 className="mr-3 h-6 w-6" /> Start Game
                         </Button>
                         <div className="mt-8 text-slate-400">
@@ -461,7 +461,7 @@ export default function AsteroidsPage() {
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70">
                         <h2 className="text-5xl font-bold text-red-500 mb-4">GAME OVER</h2>
                         <p className="text-2xl mb-6">Final Score: {score}</p>
-                        <Button onClick={startGame} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                        <Button variant="brand" onClick={startGame}>
                             <RotateCcw className="mr-2 h-4 w-4" /> Play Again
                         </Button>
                     </div>
