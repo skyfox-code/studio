@@ -73,6 +73,7 @@ export function UserPanel({
           onClick={onActionButtonClick} 
           className="w-full"
           disabled={isActionButtonDisabled}
+          variant="brand"
         >
           {renderActionIcon()}
           {actionButtonLabel}
@@ -92,3 +93,5 @@ export function UserPanel({
     </Card>
   );
 }
+
+    

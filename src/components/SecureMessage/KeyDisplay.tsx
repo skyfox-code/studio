@@ -75,7 +75,7 @@ export function KeyDisplay({ sharedKey, onSetSharedKey }: KeyDisplayProps) {
             aria-label="New secret key input"
           />
           <div className="flex space-x-2">
-            <Button onClick={handleSetKeyClick} className="flex-1">
+            <Button onClick={handleSetKeyClick} className="flex-1" variant="brand">
               <Edit3 className="mr-2 h-4 w-4" />
               Set New Key
             </Button>
@@ -89,3 +89,5 @@ export function KeyDisplay({ sharedKey, onSetSharedKey }: KeyDisplayProps) {
     </Card>
   );
 }
+
+    
