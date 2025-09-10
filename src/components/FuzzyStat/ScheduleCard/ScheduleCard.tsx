@@ -62,7 +62,7 @@ export function ScheduleCard({
           </CardTitle>
           <CardDescription>Automate temperature adjustments throughout the day.</CardDescription>
         </div>
-        <Button onClick={() => handleOpenDialog()} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+        <Button onClick={() => handleOpenDialog()} variant="brand">
           <PlusCircle className="mr-2 h-5 w-5" /> Add
         </Button>
       </CardHeader>
@@ -101,3 +101,5 @@ export function ScheduleCard({
     </Card>
   );
 }
+
+    

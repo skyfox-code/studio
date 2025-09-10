@@ -65,7 +65,7 @@ export function TrafficControlsCard({
           </div>
         </div>
 
-        <Button onClick={onToggleSimulation} className="w-full" variant={isSimulating ? "destructive" : "default"}>
+        <Button onClick={onToggleSimulation} className="w-full" variant={isSimulating ? "destructive" : "brand"}>
           {isSimulating ? <Pause className="mr-2 h-5 w-5" /> : <Play className="mr-2 h-5 w-5" />}
           {isSimulating ? "Pause Simulation" : "Start Simulation"}
         </Button>
@@ -73,3 +73,5 @@ export function TrafficControlsCard({
     </Card>
   );
 }
+
+    

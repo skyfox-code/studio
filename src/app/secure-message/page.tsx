@@ -93,7 +93,7 @@ export default function SecureMessagePage() {
           </CardContent>
         </Card>
 
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] lg:gap-8 items-start">
           {/* Sender Panel */}
           <UserPanel
             title="Sender"
@@ -111,8 +111,8 @@ export default function SecureMessagePage() {
           />
 
           {/* "Transmission" Visual Cue */}
-          <div className="flex flex-col items-center justify-center lg:pt-40 pt-4">
-            <MessageSquareDashed className="h-12 w-12 text-muted-foreground my-4 lg:my-0" />
+          <div className="flex flex-col items-center justify-center lg:pt-40 pt-4 my-4 lg:my-0">
+            <MessageSquareDashed className="h-12 w-12 text-muted-foreground" />
             <p className="text-xs text-muted-foreground hidden lg:block mt-2">Secure Channel</p>
           </div>
 
@@ -147,3 +147,5 @@ export default function SecureMessagePage() {
     </div>
   );
 }
+
+    

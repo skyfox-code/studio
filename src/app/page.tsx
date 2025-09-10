@@ -3,13 +3,44 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Gauge, LayoutGrid, ShieldCheck, Map } from 'lucide-react';
+import { ArrowRight, Gauge, LayoutGrid, ShieldCheck, Palette, Notebook } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'App Showcase | Firebase Studio',
   description: 'Explore a collection of interactive demo applications built with Next.js.',
 };
+
+const AsteroidIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className="h-8 w-8 text-accent"
+  >
+    <path
+      d="M12.83,2.25C12.5,1.42 11.5,1.42 11.17,2.25L10.05,5.32L7.5,4.5L5.63,6.37L4.82,8.93L1.75,10.05C0.92,10.38 0.92,11.38 1.75,11.71L4.82,12.83L5.63,15.38L7.5,17.25L10.05,16.43L11.17,19.5C11.5,20.33 12.5,20.33 12.83,19.5L13.95,16.43L16.5,17.25L18.37,15.38L19.18,12.83L22.25,11.71C23.08,11.38 23.08,10.38 22.25,10.05L19.18,8.93L18.37,6.37L16.5,4.5L13.95,5.32L12.83,2.25Z"
+    />
+  </svg>
+);
+
+const SnakeIcon = () => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-8 w-8 text-accent"
+    >
+        <path d="M10 8a2 2 0 1 0-4 0v4a2 2 0 1 0 4 0" />
+        <path d="M10 12a2 2 0 1 1-4 0v4a2 2 0 1 1 4 0" />
+        <path d="M14 8a2 2 0 1 0-4 0v10a2 2 0 1 0 4 0" />
+    </svg>
+);
+
 
 export default function HomePage() {
   return (
@@ -60,7 +91,7 @@ export default function HomePage() {
               </CardContent>
               <CardFooter className="mt-auto">
                 <Link href="/fuzzystat" passHref className="w-full">
-                  <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-md py-3">
+                  <Button variant="brand" className="w-full text-md py-3">
                     Launch FuzzyStat
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
@@ -95,8 +126,43 @@ export default function HomePage() {
               </CardContent>
               <CardFooter className="mt-auto">
                 <Link href="/secure-message" passHref className="w-full">
-                  <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-md py-3">
+                  <Button variant="brand" className="w-full text-md py-3">
                     Launch Secure Message
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+            
+            <Card className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <Palette className="h-8 w-8 text-accent" />
+                  <CardTitle className="text-2xl font-semibold">Theme Customizer</CardTitle>
+                </div>
+                <CardDescription className="text-base">
+                  Dynamically change the look and feel of the entire application.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow space-y-4">
+                <div className="aspect-[16/10] w-full overflow-hidden rounded-md">
+                  <Image
+                    src="https://placehold.co/600x375.png"
+                    alt="Theme Customizer Preview"
+                    width={600}
+                    height={375}
+                    className="object-cover w-full h-full"
+                    data-ai-hint="color palette picker"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                    Pick new colors for the primary, accent, and background elements and see the changes live.
+                </p>
+              </CardContent>
+              <CardFooter className="mt-auto">
+                <Link href="/theme-customizer" passHref className="w-full">
+                  <Button variant="brand" className="w-full text-md py-3">
+                    Launch Customizer
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
@@ -106,32 +172,102 @@ export default function HomePage() {
             <Card className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
-                  <Map className="h-8 w-8 text-accent" />
-                  <CardTitle className="text-2xl font-semibold">Vienna Traffic Sim</CardTitle>
+                  <AsteroidIcon />
+                  <CardTitle className="text-2xl font-semibold">Asteroids</CardTitle>
                 </div>
                 <CardDescription className="text-base">
-                  Simulate traffic patterns in Vienna based on time of day and random events.
+                  A classic arcade game. Shoot asteroids and survive as long as you can.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-grow space-y-4">
                 <div className="aspect-[16/10] w-full overflow-hidden rounded-md">
                   <Image
                     src="https://placehold.co/600x375.png"
-                    alt="Vienna Traffic Simulation Preview"
+                    alt="Asteroids Game Preview"
                     width={600}
                     height={375}
                     className="object-cover w-full h-full"
-                    data-ai-hint="city map traffic"
+                    data-ai-hint="asteroids space shooter"
                   />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Observe how traffic density changes during different parts of the day and manage simulation controls.
+                  Control your ship, destroy asteroids, and try to get a high score in this interactive demo.
                 </p>
               </CardContent>
               <CardFooter className="mt-auto">
-                <Link href="/traffic-simulation" passHref className="w-full">
-                  <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-md py-3">
-                    Launch Traffic Sim
+                <Link href="/asteroids" passHref className="w-full">
+                  <Button variant="brand" className="w-full text-md py-3">
+                    Launch Asteroids
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+
+            <Card className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <SnakeIcon />
+                  <CardTitle className="text-2xl font-semibold">Snake</CardTitle>
+                </div>
+                <CardDescription className="text-base">
+                  A classic arcade game. Eat the food and grow your snake.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow space-y-4">
+                <div className="aspect-[16/10] w-full overflow-hidden rounded-md">
+                  <Image
+                    src="https://placehold.co/600x375.png"
+                    alt="Snake Game Preview"
+                    width={600}
+                    height={375}
+                    className="object-cover w-full h-full"
+                    data-ai-hint="snake game classic"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                    Control the snake, eat the food, and avoid the walls and yourself to get a high score.
+                </p>
+              </CardContent>
+              <CardFooter className="mt-auto">
+                <Link href="/snake" passHref className="w-full">
+                  <Button variant="brand" className="w-full text-md py-3">
+                    Launch Snake
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+
+            <Card className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <Notebook className="h-8 w-8 text-accent" />
+                  <CardTitle className="text-2xl font-semibold">Notepad</CardTitle>
+                </div>
+                <CardDescription className="text-base">
+                  A simple markdown notepad that saves your notes to local storage.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow space-y-4">
+                <div className="aspect-[16/10] w-full overflow-hidden rounded-md">
+                  <Image
+                    src="https://placehold.co/600x375.png"
+                    alt="Notepad App Preview"
+                    width={600}
+                    height={375}
+                    className="object-cover w-full h-full"
+                    data-ai-hint="markdown editor text"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                    Write in Markdown on one side and see the rendered output on the other. Your notes are saved automatically.
+                </p>
+              </CardContent>
+              <CardFooter className="mt-auto">
+                <Link href="/notepad" passHref className="w-full">
+                  <Button variant="brand" className="w-full text-md py-3">
+                    Launch Notepad
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
