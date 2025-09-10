@@ -8,8 +8,8 @@ import Link from 'next/link';
 
 // --- Constants ---
 const SHIP_SIZE = 30;
-const SHIP_THRUST = 0.1;
-const SHIP_TURN_SPEED = 0.1;
+const SHIP_THRUST = 0.05;
+const SHIP_TURN_SPEED = 0.05;
 const FRICTION = 0.99;
 const BULLET_SPEED = 5;
 const BULLET_LIFESPAN = 60; // frames
@@ -366,11 +366,19 @@ export default function AsteroidsPage() {
     // --- Keyboard Handlers ---
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                if (gameState === 'playing' || gameState === 'gameover') {
+                    setGameState("start");
+                }
+                return;
+            }
+
             keysRef.current[e.key] = true;
             if (e.key === ' ') { // Shoot
                 e.preventDefault();
                 const ship = shipRef.current;
-                if (ship) {
+                if (ship && gameState === 'playing') {
                     bulletsRef.current.push({
                         x: ship.x + 4 / 3 * ship.radius * Math.cos(ship.angle),
                         y: ship.y - 4 / 3 * ship.radius * Math.sin(ship.angle),
@@ -394,7 +402,7 @@ export default function AsteroidsPage() {
             document.removeEventListener('keydown', handleKeyDown);
             document.removeEventListener('keyup', handleKeyUp);
         };
-    }, []);
+    }, [gameState]);
 
     // --- Start/Stop Game Loop ---
     useEffect(() => {
@@ -444,6 +452,7 @@ export default function AsteroidsPage() {
                             <p>Controls:</p>
                             <p><span className="font-semibold text-accent">Arrow Keys</span> to turn and thrust</p>
                             <p><span className="font-semibold text-accent">Spacebar</span> to shoot</p>
+                             <p><span className="font-semibold text-accent">Esc</span> to return to this screen</p>
                         </div>
                     </div>
                 )}
@@ -468,7 +477,5 @@ export default function AsteroidsPage() {
         </div>
     );
 }
-
-    
 
     
