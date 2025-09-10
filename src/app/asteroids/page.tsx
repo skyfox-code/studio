@@ -141,13 +141,19 @@ export default function AsteroidsPage() {
         if (!ctx) return;
         
         const canvas = canvasRef.current;
+        const ship = shipRef.current;
+
+        // Update ship from keys
+        if (ship) {
+            ship.rotation = (keysRef.current['ArrowRight'] ? -SHIP_TURN_SPEED : 0) + (keysRef.current['ArrowLeft'] ? SHIP_TURN_SPEED : 0);
+            ship.isThrusting = !!keysRef.current['ArrowUp'];
+        }
 
         // --- Drawing ---
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // --- Ship Logic ---
-        const ship = shipRef.current;
         if (ship) {
             // Thrust
             if (ship.isThrusting) {
@@ -390,17 +396,6 @@ export default function AsteroidsPage() {
         };
     }, []);
 
-    // --- Update ship based on keys ---
-    useEffect(() => {
-        const ship = shipRef.current;
-        if (!ship) return;
-        
-        ship.rotation = (keysRef.current['ArrowRight'] ? -SHIP_TURN_SPEED : 0) + (keysRef.current['ArrowLeft'] ? SHIP_TURN_SPEED : 0);
-        ship.isThrusting = !!keysRef.current['ArrowUp'];
-
-    }, [keysRef.current['ArrowUp'], keysRef.current['ArrowLeft'], keysRef.current['ArrowRight']]);
-
-
     // --- Start/Stop Game Loop ---
     useEffect(() => {
         if (gameState === "playing") {
@@ -473,4 +468,5 @@ export default function AsteroidsPage() {
         </div>
     );
 }
+
     
