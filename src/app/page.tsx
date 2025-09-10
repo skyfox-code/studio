@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Gauge, LayoutGrid, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Gauge, LayoutGrid, ShieldCheck, Palette } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -133,6 +133,41 @@ export default function HomePage() {
                 </Link>
               </CardFooter>
             </Card>
+            
+            <Card className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <Palette className="h-8 w-8 text-accent" />
+                  <CardTitle className="text-2xl font-semibold">Theme Customizer</CardTitle>
+                </div>
+                <CardDescription className="text-base">
+                  Dynamically change the look and feel of the entire application.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow space-y-4">
+                <div className="aspect-[16/10] w-full overflow-hidden rounded-md">
+                  <Image
+                    src="https://placehold.co/600x375.png"
+                    alt="Theme Customizer Preview"
+                    width={600}
+                    height={375}
+                    className="object-cover w-full h-full"
+                    data-ai-hint="color palette picker"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                    Pick new colors for the primary, accent, and background elements and see the changes live.
+                </p>
+              </CardContent>
+              <CardFooter className="mt-auto">
+                <Link href="/theme-customizer" passHref className="w-full">
+                  <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-md py-3">
+                    Launch Customizer
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
 
             <Card className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardHeader>
@@ -216,5 +251,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
