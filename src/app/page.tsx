@@ -24,6 +24,23 @@ const AsteroidIcon = () => (
   </svg>
 );
 
+const SnakeIcon = () => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-8 w-8 text-accent"
+    >
+        <path d="M10 8a2 2 0 1 0-4 0v4a2 2 0 1 0 4 0" />
+        <path d="M10 12a2 2 0 1 1-4 0v4a2 2 0 1 1 4 0" />
+        <path d="M14 8a2 2 0 1 0-4 0v10a2 2 0 1 0 4 0" />
+    </svg>
+);
+
 
 export default function HomePage() {
   return (
@@ -152,6 +169,41 @@ export default function HomePage() {
               </CardFooter>
             </Card>
 
+            <Card className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <SnakeIcon />
+                  <CardTitle className="text-2xl font-semibold">Snake</CardTitle>
+                </div>
+                <CardDescription className="text-base">
+                  A classic arcade game. Eat the food and grow your snake.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow space-y-4">
+                <div className="aspect-[16/10] w-full overflow-hidden rounded-md">
+                  <Image
+                    src="https://placehold.co/600x375.png"
+                    alt="Snake Game Preview"
+                    width={600}
+                    height={375}
+                    className="object-cover w-full h-full"
+                    data-ai-hint="snake game classic"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                    Control the snake, eat the food, and avoid the walls and yourself to get a high score.
+                </p>
+              </CardContent>
+              <CardFooter className="mt-auto">
+                <Link href="/snake" passHref className="w-full">
+                  <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-md py-3">
+                    Launch Snake
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+
           </div>
         </section>
       </main>
@@ -164,3 +216,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
