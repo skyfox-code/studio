@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Gauge, LayoutGrid, ShieldCheck, Palette } from 'lucide-react';
+import { ArrowRight, Gauge, LayoutGrid, ShieldCheck, Palette, Notebook } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -239,6 +239,41 @@ export default function HomePage() {
               </CardFooter>
             </Card>
 
+            <Card className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <Notebook className="h-8 w-8 text-accent" />
+                  <CardTitle className="text-2xl font-semibold">Notepad</CardTitle>
+                </div>
+                <CardDescription className="text-base">
+                  A simple markdown notepad that saves your notes to local storage.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow space-y-4">
+                <div className="aspect-[16/10] w-full overflow-hidden rounded-md">
+                  <Image
+                    src="https://placehold.co/600x375.png"
+                    alt="Notepad App Preview"
+                    width={600}
+                    height={375}
+                    className="object-cover w-full h-full"
+                    data-ai-hint="markdown editor text"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                    Write in Markdown on one side and see the rendered output on the other. Your notes are saved automatically.
+                </p>
+              </CardContent>
+              <CardFooter className="mt-auto">
+                <Link href="/notepad" passHref className="w-full">
+                  <Button variant="brand" className="w-full text-md py-3">
+                    Launch Notepad
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+
           </div>
         </section>
       </main>
@@ -251,5 +286,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
