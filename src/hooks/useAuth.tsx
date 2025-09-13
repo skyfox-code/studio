@@ -97,5 +97,3 @@ export function useUserQuery<T>(key: string, fetcher: (uid: string) => Promise<T
         enabled: !!user,
     });
 }
-
-    

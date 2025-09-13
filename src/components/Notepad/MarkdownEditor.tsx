@@ -68,7 +68,7 @@ export function MarkdownEditor() {
         <CardContent className="flex-grow">
           <Textarea
             value={markdown}
-            onChange={(e) => setMarkdown(e.target..value)}
+            onChange={(e) => setMarkdown(e.target.value)}
             className="w-full h-full min-h-[50vh] resize-none text-base font-mono"
             placeholder="Type your markdown here..."
           />
@@ -87,5 +87,3 @@ export function MarkdownEditor() {
     </div>
   );
 }
-
-    
