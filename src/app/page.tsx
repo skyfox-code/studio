@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Gauge, LayoutGrid, ShieldCheck, Palette, Notebook } from 'lucide-react';
+import { ArrowRight, Gauge, LayoutGrid, ShieldCheck, Palette, Notebook, CheckSquare } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -286,3 +286,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
