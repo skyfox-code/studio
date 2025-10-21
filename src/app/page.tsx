@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Gauge, LayoutGrid, ShieldCheck, Palette, Notebook } from 'lucide-react';
+import { ArrowRight, Gauge, LayoutGrid, ShieldCheck, Palette, Notebook, BarChart3 } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -268,6 +268,41 @@ export default function HomePage() {
                 <Link href="/notepad" passHref className="w-full">
                   <Button variant="brand" className="w-full text-md py-3">
                     Launch Notepad
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+
+            <Card className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <BarChart3 className="h-8 w-8 text-accent" />
+                  <CardTitle className="text-2xl font-semibold">Sorting Benchmark</CardTitle>
+                </div>
+                <CardDescription className="text-base">
+                  Compare the performance of different sorting algorithms with interactive benchmarks.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow space-y-4">
+                <div className="aspect-[16/10] w-full overflow-hidden rounded-md">
+                  <Image
+                    src="https://placehold.co/600x375.png"
+                    alt="Sorting Benchmark Preview"
+                    width={600}
+                    height={375}
+                    className="object-cover w-full h-full"
+                    data-ai-hint="performance charts sorting algorithms"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Test and compare Quick Sort, Merge Sort, Heap Sort, Bubble Sort, and more with real-time performance metrics and complexity analysis.
+                </p>
+              </CardContent>
+              <CardFooter className="mt-auto">
+                <Link href="/sorting-benchmark" passHref className="w-full">
+                  <Button variant="brand" className="w-full text-md py-3">
+                    Launch Benchmark
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
